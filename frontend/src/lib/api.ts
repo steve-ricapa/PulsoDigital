@@ -13,7 +13,24 @@ api.interceptors.request.use(
   (config) => {
     const { accessToken, isDemo } = useAuthStore.getState()
     if (isDemo) {
-      config.headers.Authorization = 'Bearer demo-token'
+      const url = config.url || ''
+      const fullUrl = (config.baseURL || '') + url
+      const params = config.params
+      let paramStr = ''
+      if (params) {
+        const qs = new URLSearchParams()
+        Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') qs.set(k, String(v)) })
+        paramStr = qs.toString()
+      }
+      const mockUrl = paramStr ? `${fullUrl}?${paramStr}` : fullUrl
+      const mockData = getMockData(mockUrl)
+      config.adapter = () => Promise.resolve({
+        data: mockData,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config,
+      })
     } else if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
@@ -239,6 +256,20 @@ function getMockData(url: string): unknown {
 
   if (url.includes('/support-requests')) {
     return { id: 'sr-new', status: 'pending', message: 'Solicitud recibida' }
+  }
+
+  if (url.includes('/responses/quick/calendar')) {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    const completions: string[] = []
+    for (let d = 1; d <= now.getDate(); d++) {
+      const dt = new Date(year, month - 1, d)
+      if (dt.getDay() === 0 || dt.getDay() === 6) continue
+      if (Math.random() < 0.25) continue
+      completions.push(`${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`)
+    }
+    return { completions, total: completions.length, month, year }
   }
 
   if (url.includes('/responses/quick')) {

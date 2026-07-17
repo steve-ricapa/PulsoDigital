@@ -177,6 +177,7 @@ class Student(TimestampMixin, Base):
     risk_predictions: Mapped[List["RiskPrediction"]] = relationship(back_populates="student")
     support_requests: Mapped[List["SupportRequest"]] = relationship(back_populates="student")
     interventions: Mapped[List["Intervention"]] = relationship(back_populates="student")
+    daily_checkins: Mapped[List["DailyCheckin"]] = relationship(back_populates="student")
 
 
 class Survey(TimestampMixin, Base):
@@ -346,6 +347,27 @@ class AuditLog(Base):
     ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
+
+
+class DailyCheckin(Base):
+    __tablename__ = "daily_checkins"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    student_id: Mapped[UUID] = mapped_column(ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    checkin_date: Mapped[date] = mapped_column(Date, nullable=False)
+    mood: Mapped[int] = mapped_column(Integer, nullable=False)
+    sleep: Mapped[int] = mapped_column(Integer, nullable=False)
+    energy: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    responded_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("student_id", "checkin_date", name="uq_daily_checkin_student_date"),
+        Index("ix_daily_checkins_student_date", "student_id", "checkin_date"),
+    )
+
+    student: Mapped["Student"] = relationship(back_populates="daily_checkins")
 
 
 class SchoolPsychologist(Base):

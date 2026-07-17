@@ -1,15 +1,15 @@
-from datetime import datetime
-from uuid import UUID
+from datetime import datetime, date
+from uuid import UUID, uuid4
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, extract
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user, require_roles
-from app.models import Response, Student, Survey, Question, User, UserRole
+from app.models import Response, Student, Survey, Question, User, UserRole, SurveyStatus, DailyCheckin, Classroom
 
 router = APIRouter()
 
@@ -205,4 +205,119 @@ async def list_responses(
         page=page,
         size=size,
         pages=(total + size - 1) // size,
+    )
+
+
+# ─── Daily Quick Check-in ────────────────────────────────────────────────────
+
+class DailyCheckinCreate(BaseModel):
+    student_id: Optional[UUID] = None
+    date: str
+    answers: dict
+
+
+class DailyCheckinResponse(BaseModel):
+    id: UUID
+    status: str
+    message: str
+
+
+class DailyCheckinCalendarResponse(BaseModel):
+    completions: List[str]
+    total: int
+    month: int
+    year: int
+
+
+@router.post("/quick", response_model=DailyCheckinResponse, status_code=status.HTTP_201_CREATED)
+async def create_daily_checkin(
+    payload: DailyCheckinCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.role != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Only students can submit daily check-ins")
+
+    student = await db.get(Student, current_user.student_profile.id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+
+    try:
+        checkin_date = date.fromisoformat(payload.date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    answers = payload.answers
+    mood = answers.get("mood")
+    sleep = answers.get("sleep")
+    energy = answers.get("energy")
+    message = answers.get("message")
+
+    if mood is None or sleep is None or energy is None:
+        raise HTTPException(status_code=400, detail="mood, sleep, and energy are required")
+
+    existing = await db.execute(
+        select(DailyCheckin).where(
+            and_(DailyCheckin.student_id == student.id, DailyCheckin.checkin_date == checkin_date)
+        )
+    )
+    existing_checkin = existing.scalar_one_or_none()
+
+    if existing_checkin:
+        existing_checkin.mood = int(mood)
+        existing_checkin.sleep = int(sleep)
+        existing_checkin.energy = int(energy)
+        existing_checkin.message = message
+        existing_checkin.responded_at = datetime.utcnow()
+        checkin_id = existing_checkin.id
+    else:
+        checkin = DailyCheckin(
+            id=uuid4(),
+            student_id=student.id,
+            checkin_date=checkin_date,
+            mood=int(mood),
+            sleep=int(sleep),
+            energy=int(energy),
+            message=message,
+        )
+        db.add(checkin)
+        checkin_id = checkin.id
+
+    await db.commit()
+
+    return DailyCheckinResponse(id=checkin_id, status="saved", message="Check-in diario registrado")
+
+
+@router.get("/quick/calendar", response_model=DailyCheckinCalendarResponse)
+async def get_checkin_calendar(
+    month: int = Query(None, ge=1, le=12),
+    year: int = Query(None, ge=2020, le=2100),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if current_user.role != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Only students can view their calendar")
+
+    student_id = current_user.student_profile.id
+
+    now = datetime.utcnow()
+    target_month = month or now.month
+    target_year = year or now.year
+
+    result = await db.execute(
+        select(DailyCheckin.checkin_date).where(
+            and_(
+                DailyCheckin.student_id == student_id,
+                extract("month", DailyCheckin.checkin_date) == target_month,
+                extract("year", DailyCheckin.checkin_date) == target_year,
+            )
+        ).order_by(DailyCheckin.checkin_date)
+    )
+    dates = [row[0].isoformat() for row in result.all()]
+
+    return DailyCheckinCalendarResponse(
+        completions=dates,
+        total=len(dates),
+        month=target_month,
+        year=target_year,
     )

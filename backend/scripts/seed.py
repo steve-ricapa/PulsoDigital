@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models import (
     Classroom,
+    DailyCheckin,
     Intervention,
     InterventionType,
     PsychologistProfile,
@@ -264,6 +265,35 @@ async def seed() -> None:
                     description="Seguimiento preventivo por descenso sostenido del bienestar",
                     follow_up_date=datetime.utcnow() + timedelta(days=idx + 1),
                     is_completed=False,
+                )
+            )
+
+        # Daily check-in seed data for student[0] (Maria, the login user)
+        today = datetime.utcnow().date()
+        checkin_messages = [
+            "Hoy fue un buen dia",
+            "Me senti tranquila",
+            "Estuve un poco cansada",
+            "Jugaba con mis amigas",
+            "La clase de matematicas estuvo dificil",
+            None,
+            "Hoy aprendi algo nuevo",
+        ]
+        for days_ago in range(14):
+            d = today - timedelta(days=days_ago)
+            if d.weekday() >= 5:
+                continue
+            if rng.random() < 0.25:
+                continue
+            db.add(
+                DailyCheckin(
+                    id=uuid4(),
+                    student_id=students[0].id,
+                    checkin_date=d,
+                    mood=rng.randint(3, 5),
+                    sleep=rng.randint(2, 3),
+                    energy=rng.randint(5, 9),
+                    message=rng.choice(checkin_messages),
                 )
             )
 
