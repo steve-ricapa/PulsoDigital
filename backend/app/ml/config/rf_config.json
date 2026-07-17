@@ -1,0 +1,39 @@
+{
+  "features": [
+    "gender", "age", "grade_level", "school_type",
+    "q1_1", "q1_2", "q1_3", "q1_4", "q1_5",
+    "q2_1", "q2_2", "q2_3",
+    "q3_1", "q3_2", "q3_3",
+    "q4_1", "q4_2",
+    "q5_1", "q5_2", "q5_3",
+    "q6_1"
+  ],
+  "feature_descriptions": {
+    "gender": "Student gender (0=M, 1=F, 2=other)",
+    "age": "Student age in years",
+    "grade_level": "Grade level (1=primary, 2=middle, 3=high school)",
+    "school_type": "School type (0=public, 1=private)",
+    "q1_1": "Emotional wellbeing (0-1)",
+    "q1_2": "Sense of belonging (0-1)",
+    "q1_3": "Bullying victimization (0-1)",
+    "q1_4": "Support seeking behavior (0-1)",
+    "q1_5": "Sleep quality (0-1)",
+    "q2_1": "Academic stress (0-1)",
+    "q2_2": "Peer relationships quality (0-1)",
+    "q2_3": "Teacher relationships quality (0-1)",
+    "q3_1": "Safety at school (0-1)",
+    "q3_2": "Physical wellbeing (0-1)",
+    "q3_3": "Extracurricular engagement (0-1)",
+    "q4_1": "Family support (0-1)",
+    "q4_2": "Social media impact (0-1)",
+    "q5_1": "Self-esteem (0-1)",
+    "q5_2": "Future outlook (0-1)",
+    "q5_3": "Life satisfaction (0-1)",
+    "q6_1": "Help-seeking attitude (0-1)"
+  },
+  "class_labels": ["low", "medium", "high"],
+  "thresholds": {
+    "monitor_75th": 50.0,
+    "flag_85th": 62.5
+  }
+}
