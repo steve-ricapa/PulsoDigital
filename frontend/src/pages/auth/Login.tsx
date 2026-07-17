@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Loader2, Shield, AlertCircle, GraduationCap, Stethoscope, School, Crown } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Shield, AlertCircle, GraduationCap, Stethoscope } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 const DEMO_PROFILES = [
@@ -21,22 +21,6 @@ const DEMO_PROFILES = [
     email: 'psicologo@colegio.edu',
     icon: Stethoscope,
     color: 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100',
-  },
-  {
-    role: 'school_admin' as const,
-    label: 'Admin Colegio',
-    description: 'Gestión escolar, reportes',
-    email: 'admin@colegio.edu',
-    icon: School,
-    color: 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100',
-  },
-  {
-    role: 'admin' as const,
-    label: 'Super Admin',
-    description: 'Configuración global, ML',
-    email: 'superadmin@pulsodigital.edu',
-    icon: Crown,
-    color: 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100',
   },
 ]
 
@@ -69,8 +53,7 @@ export function Login() {
       toast.success('Bienvenido a Pulso Digital')
       const currentUser = useAuthStore.getState().user
       if (currentUser?.role === 'student') navigate('/pulso')
-      else if (currentUser?.role === 'psychologist') navigate('/psicologo/dashboard')
-      else navigate('/dashboard')
+      else navigate('/psicologo/dashboard')
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Credenciales inválidas'
       toast.error(message)
@@ -80,12 +63,11 @@ export function Login() {
     }
   }
 
-  const handleDemoLogin = (role: 'student' | 'psychologist' | 'school_admin' | 'admin') => {
+  const handleDemoLogin = (role: 'student' | 'psychologist') => {
     loginDemo(role)
     toast.success(`Modo demo: ${DEMO_PROFILES.find(p => p.role === role)?.label}`)
     if (role === 'student') navigate('/pulso')
-    else if (role === 'psychologist') navigate('/psicologo/dashboard')
-    else navigate('/dashboard')
+    else navigate('/psicologo/dashboard')
   }
 
   const handleFillCredentials = (demoEmail: string) => {

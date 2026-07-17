@@ -14,8 +14,13 @@ from app.models import (
     User, UserRole, PsychologistProfile, Classroom
 )
 from app.core.config import settings
+from app.services.wellbeing import create_or_update_risk_prediction
 
 router = APIRouter()
+
+
+def _enum_value(value):
+    return value.value if hasattr(value, "value") else value
 
 
 class RiskPredictionResponse(BaseModel):
@@ -94,7 +99,6 @@ async def get_risk_alerts(
         .where(
             and_(
                 RiskPrediction.student_id.in_(student_ids),
-                RiskPrediction.model_name == "rule_based_v1",
             )
         )
         .order_by(desc(RiskPrediction.predicted_at))
@@ -166,7 +170,7 @@ async def get_risk_alerts(
     if risk_level:
         alerts = [a for a in alerts if a.risk_level == risk_level]
     
-    alerts.sort(key=lambda x: (x.risk_level.value, -x.risk_probability), reverse=True)
+    alerts.sort(key=lambda x: (_enum_value(x.risk_level), -x.risk_probability), reverse=True)
     
     total = len(alerts)
     start = (page - 1) * size
@@ -212,9 +216,6 @@ async def predict_risk(
     current_user: User = Depends(require_roles("admin", "school_admin", "psychologist")),
     db: AsyncSession = Depends(get_db),
 ):
-    if not settings.ML_ENABLED:
-        raise HTTPException(status_code=503, detail="ML predictions not enabled")
-    
     student = await db.get(Student, student_id)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -236,34 +237,6 @@ async def predict_risk(
     if not wellbeing:
         raise HTTPException(status_code=400, detail="Wellbeing score not calculated yet")
     
-    risk_probability = 1.0 - wellbeing.overall_score
-    
-    if risk_probability >= 0.8:
-        risk_level = RiskLevel.CRITICAL
-    elif risk_probability >= 0.6:
-        risk_level = RiskLevel.HIGH
-    elif risk_probability >= 0.4:
-        risk_level = RiskLevel.MODERATE
-    else:
-        risk_level = RiskLevel.LOW
-    
-    prediction = RiskPrediction(
-        student_id=student_id,
-        survey_id=survey_id,
-        model_name="rule_based_v1",
-        model_version="1.0.0",
-        risk_probability=risk_probability,
-        risk_level=risk_level,
-        recommended_action=(
-            "Immediate psychologist review required" if risk_level == RiskLevel.CRITICAL else
-            "Schedule check-in within 48 hours" if risk_level == RiskLevel.HIGH else
-            "Monitor closely" if risk_level == RiskLevel.MODERATE else
-            "Continue routine monitoring"
-        ),
-    )
-    
-    db.add(prediction)
-    await db.commit()
-    await db.refresh(prediction)
-    
+    prediction = await create_or_update_risk_prediction(db, student_id, survey_id, wellbeing)
+
     return RiskPredictionResponse.model_validate(prediction)

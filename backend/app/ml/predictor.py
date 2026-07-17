@@ -78,10 +78,20 @@ class MLPredictor:
 
 
 _predictor: Optional[MLPredictor] = None
+_predictor_attempted = False
 
 
-def get_ml_predictor() -> MLPredictor:
-    global _predictor
-    if _predictor is None:
+def get_ml_predictor() -> Optional[MLPredictor]:
+    global _predictor, _predictor_attempted
+    if _predictor is not None and _predictor.is_ready:
+        return _predictor
+    if _predictor_attempted:
+        return _predictor if _predictor and _predictor.is_ready else None
+    _predictor_attempted = True
+    try:
         _predictor = MLPredictor()
-    return _predictor
+        if _predictor.is_ready:
+            return _predictor
+    except Exception as exc:
+        logger.warning("Could not initialize ML predictor: %s", exc)
+    return None

@@ -53,7 +53,7 @@ export function PsychologistStudentDetail() {
   const [activeTab, setActiveTab] = useState<'trend' | 'requests' | 'interventions'>('trend')
   const [newIntervention, setNewIntervention] = useState(false)
   const [interventionForm, setInterventionForm] = useState({
-    type: 'contact_made',
+    type: 'conversation',
     description: '',
     follow_up_date: '',
     outcome: '',
@@ -85,10 +85,10 @@ export function PsychologistStudentDetail() {
         intervention_type: interventionForm.type,
         description: interventionForm.description,
         follow_up_date: interventionForm.follow_up_date || undefined,
-        outcome: interventionForm.type === 'case_closed' ? interventionForm.outcome : undefined,
+        outcome: interventionForm.outcome || undefined,
       })
       setNewIntervention(false)
-      setInterventionForm({ type: 'contact_made', description: '', follow_up_date: '', outcome: '' })
+      setInterventionForm({ type: 'conversation', description: '', follow_up_date: '', outcome: '' })
       const res = await api.get(`/dashboard/students/${id}/trend`, { params: { weeks: 12 } })
       setStudent(res.data)
     } catch {
@@ -109,22 +109,23 @@ export function PsychologistStudentDetail() {
 
   const getRequestTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      anonymous_message: 'Mensaje anónimo',
-      request_support: 'Solicitud de apoyo',
-      request_contact: 'Solicitud de contacto',
-      report_concern: 'Reporte de preocupación',
+      i_want_to_talk: 'Quiero hablar',
+      i_want_help: 'Quiero ayuda',
+      i_want_to_report: 'Quiero reportar',
+      general_support: 'Apoyo general',
     }
     return labels[type] || type
   }
 
   const getInterventionLabel = (type: string) => {
     const labels: Record<string, string> = {
-      contact_made: 'Contacto realizado',
+      conversation: 'Conversación',
       session_scheduled: 'Sesión programada',
       external_referral: 'Derivación externa',
-      follow_up_pending: 'Seguimiento pendiente',
-      case_closed: 'Caso cerrado',
-      observation: 'Observación',
+      group_activity: 'Actividad grupal',
+      follow_up: 'Seguimiento',
+      parent_contact: 'Contacto apoderado',
+      other: 'Otra',
     }
     return labels[type] || type
   }
@@ -416,12 +417,13 @@ export function PsychologistStudentDetail() {
                   <div>
                     <label className="label">Tipo de intervención</label>
                     <select value={interventionForm.type} onChange={(e) => setInterventionForm({ ...interventionForm, type: e.target.value })} className="input">
-                      <option value="contact_made">Contacto realizado</option>
+                      <option value="conversation">Conversación</option>
                       <option value="session_scheduled">Sesión programada</option>
                       <option value="external_referral">Derivación externa</option>
-                      <option value="follow_up_pending">Seguimiento pendiente</option>
-                      <option value="case_closed">Caso cerrado</option>
-                      <option value="observation">Observación</option>
+                      <option value="group_activity">Actividad grupal</option>
+                      <option value="follow_up">Seguimiento</option>
+                      <option value="parent_contact">Contacto apoderado</option>
+                      <option value="other">Otra</option>
                     </select>
                   </div>
 
@@ -447,18 +449,16 @@ export function PsychologistStudentDetail() {
                     />
                   </div>
 
-                  {interventionForm.type === 'case_closed' && (
-                    <div>
-                      <label className="label">Resultado / Cierre</label>
-                      <textarea
-                        value={interventionForm.outcome}
-                        onChange={(e) => setInterventionForm({ ...interventionForm, outcome: e.target.value })}
-                        rows={2}
-                        className="input"
-                        placeholder="Describe el resultado o motivo de cierre..."
-                      />
-                    </div>
-                  )}
+                  <div>
+                    <label className="label">Resultado / Cierre (opcional)</label>
+                    <textarea
+                      value={interventionForm.outcome}
+                      onChange={(e) => setInterventionForm({ ...interventionForm, outcome: e.target.value })}
+                      rows={2}
+                      className="input"
+                      placeholder="Describe el resultado o motivo de cierre..."
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">

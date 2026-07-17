@@ -4,6 +4,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, desc
+from sqlalchemy.orm import selectinload
 from pydantic import BaseModel, Field
 
 from app.core.database import get_db
@@ -13,6 +14,7 @@ from app.models import (
     RiskLevel, Classroom, PsychologistProfile
 )
 from app.services.wellbeing import calculate_wellbeing_score, calculate_trend_score
+from app.services.regression import compute_wellbeing_regression
 
 router = APIRouter()
 
@@ -39,6 +41,11 @@ class WellbeingListResponse(BaseModel):
     page: int
     size: int
     pages: int
+
+
+class StudentTrendResponse(BaseModel):
+    scores: List[WellbeingScoreResponse]
+    regression: Optional[dict] = None
 
 
 @router.post("/calculate/{student_id}/{survey_id}", response_model=WellbeingScoreResponse)
@@ -216,3 +223,46 @@ async def get_latest_wellbeing(
         raise HTTPException(status_code=404, detail="No wellbeing score found")
     
     return WellbeingScoreResponse.model_validate(score)
+
+
+@router.get("/trend/{student_id}", response_model=StudentTrendResponse)
+async def get_student_wellbeing_trend(
+    student_id: UUID,
+    weeks: int = Query(8, ge=1, le=52),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    student = await db.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    if current_user.role == UserRole.PSYCHOLOGIST:
+        psych_students = await db.execute(
+            select(Student.id).join(Classroom).where(
+                and_(
+                    Classroom.psychologist_id == current_user.psychologist_profile.id,
+                    Student.id == student_id,
+                )
+            )
+        )
+        if not psych_students.scalar_one_or_none():
+            raise HTTPException(status_code=403, detail="Not authorized")
+    elif current_user.role == UserRole.SCHOOL_ADMIN and student.school_id != current_user.school_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    elif current_user.role == UserRole.STUDENT and current_user.student_profile.id != student_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    scores = await db.execute(
+        select(WellbeingScore)
+        .where(
+            and_(
+                WellbeingScore.student_id == student_id,
+                WellbeingScore.calculated_at >= datetime.utcnow() - timedelta(weeks=weeks),
+            )
+        )
+        .order_by(WellbeingScore.calculated_at.asc())
+    )
+    scores_list = [WellbeingScoreResponse.model_validate(score) for score in scores.scalars().all()]
+    overall_values = [s.overall_score for s in scores_list]
+    regression = compute_wellbeing_regression(overall_values)
+    return StudentTrendResponse(scores=scores_list, regression=regression)

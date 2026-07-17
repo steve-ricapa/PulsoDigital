@@ -22,14 +22,61 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+let isRefreshing = false
+let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason?: unknown) => void }> = []
+
+function processQueue(error: unknown) {
+  failedQueue.forEach(({ reject }) => reject(error))
+  failedQueue = []
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const { isDemo } = useAuthStore.getState()
+  async (error) => {
+    const originalRequest = error.config
+    const { isDemo, refreshToken, isAuthenticated } = useAuthStore.getState()
+
     if (isDemo && (!error.response || error.code === 'ERR_NETWORK')) {
       const url = error.config?.url || ''
       return Promise.resolve({ data: getMockData(url), status: 200, statusText: 'OK', headers: {}, config: error.config })
     }
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isDemo && isAuthenticated) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(() => api(originalRequest))
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      if (!refreshToken) {
+        isRefreshing = false
+        useAuthStore.getState().logout()
+        return Promise.reject(error)
+      }
+
+      try {
+        await useAuthStore.getState().refreshAccessToken()
+        const { accessToken } = useAuthStore.getState()
+        if (accessToken) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`
+          processQueue(null)
+          return api(originalRequest)
+        }
+        processQueue(error)
+        return Promise.reject(error)
+      } catch (refreshError) {
+        processQueue(refreshError)
+        useAuthStore.getState().logout()
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
+      }
+    }
+
     return Promise.reject(error)
   }
 )
@@ -55,7 +102,7 @@ function getMockData(url: string): unknown {
     }
   }
 
-  if (url.includes('/dashboard/students') && !url.includes('/trend')) {
+  if (url.includes('/dashboard/students') && !url.includes('/trend') && !url.includes('/detail')) {
     return {
       students: [
         { id: 's1', internal_id: 'EST-042', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.31, risk_level: 'high', trend: 'declining', weeks_declining: 3, sudden_drop: true, last_survey_date: '2025-07-07', pending_requests: 1 },
@@ -68,7 +115,7 @@ function getMockData(url: string): unknown {
     }
   }
 
-  if (url.includes('/dashboard/students/') && url.includes('/trend')) {
+  if (url.includes('/dashboard/students/') && (url.includes('/trend') || url.includes('/detail'))) {
     const weeks = 8
     const history = Array.from({ length: weeks }, (_, i) => {
       const base = 0.5 + Math.random() * 0.3
@@ -86,10 +133,10 @@ function getMockData(url: string): unknown {
       id: 's1', internal_id: 'EST-042', classroom_name: '2do B', grade: 2, section: 'B',
       wellbeing_history: history,
       support_requests: [
-        { id: 'sr1', request_type: 'talk_to_someone', message: 'Me siento triste últimamente', is_anonymous: false, status: 'pending', created_at: '2025-07-08T10:30:00' },
+        { id: 'sr1', request_type: 'i_want_to_talk', message: 'Me siento triste últimamente', is_anonymous: false, status: 'pending', created_at: '2025-07-08T10:30:00' },
       ],
       interventions: [
-        { id: 'i1', intervention_type: 'contact_made', description: 'Se realizó llamada de seguimiento. Estudiante refiere sentirse mejor.', follow_up_date: '2025-07-14', is_completed: false, created_at: '2025-07-07T14:00:00', psychologist_name: 'Dr. Carlos Mendoza' },
+        { id: 'i1', intervention_type: 'conversation', description: 'Se realizó llamada de seguimiento. Estudiante refiere sentirse mejor.', follow_up_date: '2025-07-14', is_completed: false, created_at: '2025-07-07T14:00:00', psychologist_name: 'Dr. Carlos Mendoza' },
       ],
     }
   }
@@ -107,8 +154,8 @@ function getMockData(url: string): unknown {
   if (url.includes('/interventions') && !url.includes('/student/')) {
     return {
       interventions: [
-        { id: 'i1', student_id: 's1', student_internal_id: 'EST-042', classroom_name: '2do B', intervention_type: 'contact_made', description: 'Llamada de seguimiento con estudiante', follow_up_date: '2025-07-14', is_completed: false, created_at: '2025-07-07T14:00:00', psychologist_name: 'Dr. Carlos Mendoza', risk_level: 'high' },
-        { id: 'i2', student_id: 's2', student_internal_id: 'EST-108', classroom_name: '1ro A', intervention_type: 'referral', description: 'Derivación a orientación vocacional', is_completed: true, completed_at: '2025-07-05T16:00:00', created_at: '2025-07-01T09:00:00', psychologist_name: 'Dr. Carlos Mendoza', risk_level: 'medium' },
+        { id: 'i1', student_id: 's1', student_internal_id: 'EST-042', classroom_name: '2do B', intervention_type: 'conversation', description: 'Llamada de seguimiento con estudiante', follow_up_date: '2025-07-14', is_completed: false, created_at: '2025-07-07T14:00:00', psychologist_name: 'Dr. Carlos Mendoza', risk_level: 'high' },
+        { id: 'i2', student_id: 's2', student_internal_id: 'EST-108', classroom_name: '1ro A', intervention_type: 'external_referral', description: 'Derivación a orientación vocacional', is_completed: true, completed_at: '2025-07-05T16:00:00', created_at: '2025-07-01T09:00:00', psychologist_name: 'Dr. Carlos Mendoza', risk_level: 'medium' },
       ],
       total: 2, page: 1, size: 20, pages: 1,
     }
@@ -166,6 +213,7 @@ function getMockData(url: string): unknown {
 export const authApi = {
   login: (email: string, password: string) => api.post('/auth/login', { email, password }),
   refresh: (refreshToken: string) => api.post('/auth/refresh', { refresh_token: refreshToken }),
+  logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
   changePassword: (data: { current_password: string; new_password: string }) =>
     api.post('/auth/change-password', data),
@@ -188,7 +236,7 @@ export const psychologistApi = {
   getStudents: (params?: { classroom_id?: string; risk_level?: string; page?: number; size?: number }) =>
     api.get('/dashboard/students', { params }),
   getStudentDetail: (studentId: string, weeks?: number) =>
-    api.get(`/dashboard/students/${studentId}/trend`, { params: { weeks } }),
+    api.get(`/dashboard/students/${studentId}/detail`, { params: { weeks } }),
   getAlerts: (params?: { risk_level?: string; page?: number; size?: number }) =>
     api.get('/risk/alerts', { params }),
   createIntervention: (data: {

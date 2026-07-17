@@ -15,8 +15,13 @@ from app.models import (
     PsychologistProfile, User, UserRole, SurveyStatus, RiskLevel,
     SupportRequestType
 )
+from app.services.regression import compute_wellbeing_regression
 
 router = APIRouter()
+
+
+def _enum_value(value):
+    return value.value if hasattr(value, "value") else value
 
 
 class SchoolOverviewResponse(BaseModel):
@@ -45,6 +50,53 @@ class PsychologistDashboardResponse(BaseModel):
     priority_students: List[dict]
     pending_requests: int
     upcoming_followups: List[dict]
+
+
+class StudentDashboardListItem(BaseModel):
+    id: UUID
+    internal_id: str
+    classroom_name: str
+    grade: int
+    section: str
+    latest_wellbeing: Optional[float]
+    risk_level: str
+    trend: str
+    weeks_declining: int
+    sudden_drop: bool
+    last_survey_date: Optional[datetime]
+    pending_requests: int
+
+
+class StudentDashboardListResponse(BaseModel):
+    students: List[StudentDashboardListItem]
+    total: int
+    page: int
+    size: int
+    pages: int
+
+
+def _compute_trend_from_scores(scores: List[WellbeingScore]) -> tuple[str, int, bool]:
+    weeks_declining = 0
+    for i in range(len(scores) - 1):
+        if scores[i].overall_score < scores[i + 1].overall_score:
+            weeks_declining += 1
+        else:
+            break
+
+    sudden_drop = False
+    if len(scores) >= 2 and scores[1].overall_score > 0:
+        drop = (scores[1].overall_score - scores[0].overall_score) / scores[1].overall_score
+        sudden_drop = drop >= 0.30
+
+    trend = "stable"
+    if sudden_drop:
+        trend = "sudden_drop"
+    elif weeks_declining >= 3:
+        trend = "declining"
+    elif len(scores) >= 2 and scores[0].overall_score > scores[1].overall_score:
+        trend = "improving"
+
+    return trend, weeks_declining, sudden_drop
 
 
 @router.get("/school-overview", response_model=SchoolOverviewResponse)
@@ -98,7 +150,7 @@ async def get_school_overview(
             )
         ).group_by(WellbeingScore.risk_level)
     )
-    students_by_risk = {row[0].value: row[1] for row in risk_distribution.all()}
+    students_by_risk = {_enum_value(row[0]): row[1] for row in risk_distribution.all()}
     
     weekly_trend = await db.execute(
         select(
@@ -237,7 +289,7 @@ async def get_classroom_summaries(
                 )
             ).group_by(WellbeingScore.risk_level)
         )
-        risk_distribution = {row[0].value: row[1] for row in risk_dist.all()}
+        risk_distribution = {_enum_value(row[0]): row[1] for row in risk_dist.all()}
         
         summaries.append(ClassroomSummaryResponse(
             classroom_id=classroom.id,
@@ -251,6 +303,77 @@ async def get_classroom_summaries(
         ))
     
     return summaries
+
+
+@router.get("/students", response_model=StudentDashboardListResponse)
+async def get_dashboard_students(
+    search: Optional[str] = Query(None),
+    risk_level: Optional[RiskLevel] = Query(None),
+    trend: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(require_roles("psychologist", "admin", "school_admin")),
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Student).options(selectinload(Student.classroom)).where(Student.is_active == True)
+
+    if current_user.role == UserRole.PSYCHOLOGIST:
+        query = query.join(Classroom).where(Classroom.psychologist_id == current_user.psychologist_profile.id)
+    elif current_user.role == UserRole.SCHOOL_ADMIN:
+        query = query.where(Student.school_id == current_user.school_id)
+
+    if search:
+        query = query.where(Student.internal_id.ilike(f"%{search}%"))
+
+    students = (await db.execute(query.order_by(Student.internal_id.asc()))).scalars().all()
+
+    items: List[StudentDashboardListItem] = []
+    for student in students:
+        scores = (await db.execute(
+            select(WellbeingScore)
+            .where(WellbeingScore.student_id == student.id)
+            .order_by(desc(WellbeingScore.calculated_at))
+            .limit(5)
+        )).scalars().all()
+        latest = scores[0] if scores else None
+        student_trend, weeks_declining, sudden_drop = _compute_trend_from_scores(scores)
+        pending_requests = await db.scalar(
+            select(func.count(SupportRequest.id)).where(
+                and_(SupportRequest.student_id == student.id, SupportRequest.status == "pending")
+            )
+        ) or 0
+
+        item = StudentDashboardListItem(
+            id=student.id,
+            internal_id=student.internal_id,
+            classroom_name=student.classroom.name if student.classroom else "Sin aula",
+            grade=student.classroom.grade if student.classroom else 0,
+            section=student.classroom.section if student.classroom else "-",
+            latest_wellbeing=round(float(latest.overall_score), 3) if latest else None,
+            risk_level=_enum_value(latest.risk_level) if latest else _enum_value(RiskLevel.LOW),
+            trend=student_trend,
+            weeks_declining=weeks_declining,
+            sudden_drop=sudden_drop,
+            last_survey_date=latest.calculated_at if latest else None,
+            pending_requests=pending_requests,
+        )
+
+        if risk_level and item.risk_level != _enum_value(risk_level):
+            continue
+        if trend and item.trend != trend:
+            continue
+        items.append(item)
+
+    total = len(items)
+    start = (page - 1) * size
+    end = start + size
+    return StudentDashboardListResponse(
+        students=items[start:end],
+        total=total,
+        page=page,
+        size=size,
+        pages=(total + size - 1) // size,
+    )
 
 
 @router.get("/psychologist", response_model=PsychologistDashboardResponse)
@@ -313,7 +436,7 @@ async def get_psychologist_dashboard(
                 )
             ).group_by(WellbeingScore.risk_level)
         )
-        risk_distribution = {row[0].value: row[1] for row in risk_dist.all()}
+        risk_distribution = {_enum_value(row[0]): row[1] for row in risk_dist.all()}
         
         classroom_summaries.append(ClassroomSummaryResponse(
             classroom_id=classroom.id,
@@ -328,6 +451,7 @@ async def get_psychologist_dashboard(
     
     priority_students_query = await db.execute(
         select(Student, WellbeingScore.overall_score, WellbeingScore.risk_level)
+        .options(selectinload(Student.classroom))
         .join(WellbeingScore, Student.id == WellbeingScore.student_id)
         .join(Classroom, Student.classroom_id == Classroom.id)
         .where(
@@ -341,16 +465,28 @@ async def get_psychologist_dashboard(
         .order_by(WellbeingScore.overall_score.asc())
         .limit(10)
     )
-    priority_students = [
-        {
-            "student_id": row[0].id,
-            "internal_id": row[0].internal_id,
-            "classroom": row[0].classroom.name,
-            "wellbeing_score": round(float(row[1]), 3),
-            "risk_level": row[2].value,
-        }
-        for row in priority_students_query.all()
-    ]
+    priority_students = []
+    for row in priority_students_query.all():
+        recent_scores = (await db.execute(
+            select(WellbeingScore)
+            .where(WellbeingScore.student_id == row[0].id)
+            .order_by(desc(WellbeingScore.calculated_at))
+            .limit(5)
+        )).scalars().all()
+        trend, weeks_declining, sudden_drop = _compute_trend_from_scores(recent_scores)
+        priority_students.append(
+            {
+                "student_id": row[0].id,
+                "internal_id": row[0].internal_id,
+                "classroom": row[0].classroom.name,
+                "wellbeing_score": round(float(row[1]), 3),
+                "risk_level": _enum_value(row[2]),
+                "trend": trend,
+                "weeks_declining": weeks_declining,
+                "sudden_drop": sudden_drop,
+                "last_survey_date": recent_scores[0].calculated_at.isoformat() if recent_scores else datetime.utcnow().isoformat(),
+            }
+        )
     
     pending_requests = await db.scalar(
         select(func.count(SupportRequest.id)).where(
@@ -362,7 +498,9 @@ async def get_psychologist_dashboard(
     ) or 0
     
     upcoming_followups = await db.execute(
-        select(Intervention).where(
+        select(Intervention)
+        .options(selectinload(Intervention.student))
+        .where(
             and_(
                 Intervention.psychologist_id == psych.id,
                 Intervention.is_completed == False,
@@ -375,7 +513,7 @@ async def get_psychologist_dashboard(
         {
             "intervention_id": i.id,
             "student_internal_id": i.student.internal_id,
-            "type": i.intervention_type.value,
+            "type": _enum_value(i.intervention_type),
             "follow_up_date": i.follow_up_date.isoformat(),
         }
         for i in upcoming_followups.scalars().all()
@@ -436,10 +574,13 @@ async def get_student_trend(
             "safety": round(w.safety_score, 3),
             "belonging": round(w.belonging_score, 3),
             "trend": round(w.trend_score, 3),
-            "risk_level": w.risk_level.value,
+            "risk_level": _enum_value(w.risk_level),
         }
         for w in wellbeing_history
     ]
+
+    overall_values = [p["overall"] for p in trend_data]
+    regression = compute_wellbeing_regression(overall_values)
     
     support_requests = await db.execute(
         select(SupportRequest).where(
@@ -466,10 +607,12 @@ async def get_student_trend(
     return {
         "student_internal_id": student.internal_id,
         "wellbeing_trend": trend_data,
+        "regression": regression,
         "support_requests": [
             {
                 "id": r.id,
-                "type": r.request_type.value,
+                "type": _enum_value(r.request_type),
+                "message": r.message,
                 "status": r.status,
                 "created_at": r.created_at.isoformat(),
                 "is_anonymous": r.is_anonymous,
@@ -478,7 +621,7 @@ async def get_student_trend(
         "interventions": [
             {
                 "id": i.id,
-                "type": i.intervention_type.value,
+                "type": _enum_value(i.intervention_type),
                 "description": i.description,
                 "outcome": i.outcome,
                 "completed": i.is_completed,
@@ -487,3 +630,56 @@ async def get_student_trend(
             } for i in interventions
         ],
     }
+
+
+@router.get("/students/{student_id}/trend")
+async def get_student_trend_alias(
+    student_id: UUID,
+    weeks: int = Query(12, ge=1, le=52),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    base = await get_student_trend(student_id, weeks, current_user, db)
+    student = await db.get(Student, student_id, options=[selectinload(Student.classroom)])
+    return {
+        "id": student_id,
+        "internal_id": base["student_internal_id"],
+        "classroom_name": student.classroom.name if student and student.classroom else "Sin aula",
+        "grade": student.classroom.grade if student and student.classroom else 0,
+        "section": student.classroom.section if student and student.classroom else "-",
+        "wellbeing_history": base["wellbeing_trend"],
+        "regression": base.get("regression"),
+        "support_requests": [
+            {
+                "id": item["id"],
+                "request_type": item["type"],
+                "message": item.get("message"),
+                "is_anonymous": item["is_anonymous"],
+                "status": item["status"],
+                "created_at": item["created_at"],
+            }
+            for item in base["support_requests"]
+        ],
+        "interventions": [
+            {
+                "id": item["id"],
+                "intervention_type": item["type"],
+                "description": item["description"],
+                "outcome": item["outcome"],
+                "is_completed": item["completed"],
+                "created_at": item["created_at"],
+                "psychologist_name": item["psychologist"],
+            }
+            for item in base["interventions"]
+        ],
+    }
+
+
+@router.get("/students/{student_id}/detail")
+async def get_student_detail(
+    student_id: UUID,
+    weeks: int = Query(12, ge=1, le=52),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await get_student_trend_alias(student_id, weeks, current_user, db)

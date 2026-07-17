@@ -243,12 +243,13 @@ export function PsychologistDashboard() {
 
 function getInterventionLabel(type: string): string {
   const labels: Record<string, string> = {
-    contact_made: 'Contacto realizado',
+    conversation: 'Conversación',
     session_scheduled: 'Sesión programada',
     external_referral: 'Derivación externa',
-    follow_up_pending: 'Seguimiento pendiente',
-    case_closed: 'Caso cerrado',
-    observation: 'Observación',
+    group_activity: 'Actividad grupal',
+    follow_up: 'Seguimiento',
+    parent_contact: 'Contacto apoderado',
+    other: 'Otra',
   }
   return labels[type] || type
 }

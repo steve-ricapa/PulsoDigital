@@ -1,13 +1,18 @@
 from datetime import datetime, timedelta
+import json
+import logging
 from uuid import UUID
-from typing import List, Dict
+from uuid import uuid4
+from typing import List, Dict, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, desc
 from app.models import (
     WellbeingScore, Response, Question, Survey, Student,
-    QuestionType, RiskLevel
+    QuestionType, RiskLevel, RiskPrediction
 )
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 async def calculate_wellbeing_score(
@@ -107,8 +112,128 @@ async def calculate_wellbeing_score(
     
     await db.commit()
     await db.refresh(score)
+
+    await create_or_update_risk_prediction(db, student_id, survey_id, score)
     
     return score
+
+
+async def create_or_update_risk_prediction(
+    db: AsyncSession,
+    student_id: UUID,
+    survey_id: UUID,
+    wellbeing: WellbeingScore,
+) -> RiskPrediction:
+    student = await db.get(Student, student_id)
+    if not student:
+        raise ValueError("Student not found")
+
+    model_name, model_version, risk_probability, risk_level, feature_importance = _build_prediction_payload(student, wellbeing)
+
+    existing = await db.execute(
+        select(RiskPrediction).where(
+            and_(
+                RiskPrediction.student_id == student_id,
+                RiskPrediction.survey_id == survey_id,
+            )
+        ).order_by(desc(RiskPrediction.predicted_at))
+    )
+    prediction = existing.scalars().first()
+
+    if prediction:
+        prediction.model_name = model_name
+        prediction.model_version = model_version
+        prediction.risk_probability = risk_probability
+        prediction.risk_level = risk_level
+        prediction.feature_importance = feature_importance
+        prediction.recommended_action = get_recommended_action(risk_level)
+        prediction.predicted_at = datetime.utcnow()
+    else:
+        prediction = RiskPrediction(
+            id=uuid4(),
+            student_id=student_id,
+            survey_id=survey_id,
+            model_name=model_name,
+            model_version=model_version,
+            risk_probability=risk_probability,
+            risk_level=risk_level,
+            feature_importance=feature_importance,
+            recommended_action=get_recommended_action(risk_level),
+        )
+        db.add(prediction)
+
+    await db.commit()
+    await db.refresh(prediction)
+    return prediction
+
+
+def _build_prediction_payload(
+    student: Student,
+    wellbeing: WellbeingScore,
+) -> Tuple[str, str, float, RiskLevel, str | None]:
+    if settings.ML_ENABLED:
+        try:
+            from app.ml import get_ml_predictor
+
+            predictor = get_ml_predictor()
+            result = predictor.predict_from_wellbeing(
+                student_data={
+                    "gender": student.gender or "other",
+                    "birth_date": student.birth_date.isoformat() if student.birth_date else None,
+                    "grade": 7,
+                    "school_type": "public",
+                },
+                wellbeing_scores={
+                    "emotional_score": wellbeing.emotional_score,
+                    "safety_score": wellbeing.safety_score,
+                    "belonging_score": wellbeing.belonging_score,
+                    "trend_score": wellbeing.trend_score,
+                    "overall_score": wellbeing.overall_score,
+                },
+                include_explanations=False,
+            )
+
+            high_probability = float(result["probabilities"].get("high", 0.0))
+            medium_probability = float(result["probabilities"].get("medium", 0.0))
+            predicted_class = result["predicted_class"]
+            risk_probability = max(high_probability, medium_probability)
+            risk_level = map_ml_result_to_risk_level(predicted_class, high_probability)
+            feature_importance = json.dumps(result["probabilities"])
+            return "rf_v1", "1.0.0", risk_probability, risk_level, feature_importance
+        except Exception as exc:
+            logger.warning("ML prediction unavailable, falling back to rule-based risk: %s", exc)
+
+    risk_probability = 1.0 - wellbeing.overall_score
+    risk_level = determine_risk_level_from_probability(risk_probability)
+    return "rule_based_v1", "1.0.0", risk_probability, risk_level, None
+
+
+def map_ml_result_to_risk_level(predicted_class: str, high_probability: float) -> RiskLevel:
+    if predicted_class == "high":
+        return RiskLevel.CRITICAL if high_probability >= 0.85 else RiskLevel.HIGH
+    if predicted_class == "medium":
+        return RiskLevel.MODERATE
+    return RiskLevel.LOW
+
+
+def determine_risk_level_from_probability(risk_probability: float) -> RiskLevel:
+    if risk_probability >= 0.8:
+        return RiskLevel.CRITICAL
+    if risk_probability >= 0.6:
+        return RiskLevel.HIGH
+    if risk_probability >= 0.4:
+        return RiskLevel.MODERATE
+    return RiskLevel.LOW
+
+
+def get_recommended_action(risk_level: RiskLevel) -> str:
+    if risk_level == RiskLevel.CRITICAL:
+        return "Immediate psychologist review required"
+    if risk_level == RiskLevel.HIGH:
+        return "Schedule check-in within 48 hours"
+    if risk_level == RiskLevel.MODERATE:
+        return "Monitor closely"
+    return "Continue routine monitoring"
 
 
 def normalize_response(question: Question, response: Response) -> float:

@@ -3,7 +3,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { api } from '../../lib/api'
 import { cn, formatDate, getRiskLevelColor, getRiskLevelLabel } from '../../lib/utils'
 import { Heart, Activity, Smile, Meh, Frown, ChevronRight } from 'lucide-react'
-import { DailyCheckin } from '../components/DailyCheckin'
 
 interface TrendPoint {
   date: string
@@ -20,18 +19,6 @@ export function StudentDashboard() {
   const [trend, setTrend] = useState<TrendPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showDailyCheckin, setShowDailyCheckin] = useState(false)
-
-  useEffect(() => {
-    if (user?.id) {
-      const today = new Date().toISOString().split('T')[0]
-      const lastCheckin = localStorage.getItem(`daily-checkin-${user.id}`)
-      if (lastCheckin !== today) {
-        setShowDailyCheckin(true)
-      }
-    }
-  }, [user])
-
   useEffect(() => {
     async function fetchData() {
       if (!user?.student_profile) return
@@ -234,12 +221,6 @@ export function StudentDashboard() {
           </div>
         </a>
       </div>
-
-      {showDailyCheckin && (
-        <DailyCheckin onComplete={() => {
-          setShowDailyCheckin(false)
-        }} />
-      )}
     </div>
   )
 }

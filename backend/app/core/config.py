@@ -1,5 +1,4 @@
 from functools import lru_cache
-from typing import List
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -34,8 +33,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    CORS_ORIGINS: List[str] = Field(
-        default=["http://localhost:5173", "http://localhost:3000"],
+    CORS_ORIGINS: str = Field(
+        default='["http://localhost:5173", "http://localhost:3000"]',
         description="Allowed CORS origins",
     )
     

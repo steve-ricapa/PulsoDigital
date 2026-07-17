@@ -5,7 +5,7 @@ interface User {
   id: string
   email: string
   full_name: string
-  role: 'admin' | 'school_admin' | 'psychologist' | 'student'
+  role: 'psychologist' | 'student'
   is_active: boolean
   is_verified: boolean
   school_id?: string
@@ -17,7 +17,7 @@ interface AuthContextType {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false)
     }
     initAuth()
-  }, [isAuthenticated, user, logout, refreshAccessToken])
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout }}>

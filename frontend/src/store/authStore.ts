@@ -6,7 +6,7 @@ interface User {
   id: string
   email: string
   full_name: string
-  role: 'admin' | 'school_admin' | 'psychologist' | 'student'
+  role: 'psychologist' | 'student'
   is_active: boolean
   is_verified: boolean
   school_id?: string
@@ -17,11 +17,13 @@ interface User {
 interface AuthState {
   user: User | null
   accessToken: string | null
+  refreshToken: string | null
   isAuthenticated: boolean
   isDemo: boolean
+  isRefreshing: boolean
   login: (email: string, password: string) => Promise<void>
   loginDemo: (role: User['role']) => void
-  logout: () => void
+  logout: () => Promise<void>
   setUser: (user: User) => void
   refreshAccessToken: () => Promise<void>
 }
@@ -47,45 +49,31 @@ const DEMO_USERS: Record<User['role'], User> = {
     school_id: 'school-001',
     psychologist_profile: { id: 'pp-001' },
   },
-  school_admin: {
-    id: 'demo-admin-001',
-    email: 'admin@colegio.edu',
-    full_name: 'Lic. Ana Torres',
-    role: 'school_admin',
-    is_active: true,
-    is_verified: true,
-    school_id: 'school-001',
-  },
-  admin: {
-    id: 'demo-sysadmin-001',
-    email: 'superadmin@pulsodigital.edu',
-    full_name: 'Ing. Roberto Díaz',
-    role: 'admin',
-    is_active: true,
-    is_verified: true,
-  },
 }
+
+let refreshPromise: Promise<void> | null = null
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
       accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isDemo: false,
+      isRefreshing: false,
 
       login: async (email: string, password: string) => {
         const response = await api.post('/auth/login', { email, password })
-        const { access_token, user } = response.data
-        
+        const { token, user } = response.data
+
         set({
           user,
-          accessToken: access_token,
+          accessToken: token.access_token,
+          refreshToken: token.refresh_token,
           isAuthenticated: true,
           isDemo: false,
         })
-        
-        api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
       },
 
       loginDemo: (role: User['role']) => {
@@ -93,23 +81,65 @@ export const useAuthStore = create<AuthState>()(
         set({
           user,
           accessToken: 'demo-token',
+          refreshToken: null,
           isAuthenticated: true,
           isDemo: true,
         })
       },
 
-      logout: () => {
-        set({ user: null, accessToken: null, isAuthenticated: false, isDemo: false })
-        delete api.defaults.headers.common['Authorization']
+      logout: async () => {
+        const { accessToken, isDemo } = get()
+        if (!isDemo && accessToken) {
+          try {
+            await api.post('/auth/logout')
+          } catch {
+            // ignore — token may already be expired
+          }
+        }
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isAuthenticated: false,
+          isDemo: false,
+          isRefreshing: false,
+        })
       },
 
       setUser: (user: User) => set({ user }),
 
       refreshAccessToken: async () => {
-        const { accessToken } = get()
-        if (accessToken) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+        const { refreshToken, isDemo } = get()
+        if (isDemo || !refreshToken) return
+
+        if (refreshPromise) {
+          return refreshPromise
         }
+
+        refreshPromise = (async () => {
+          set({ isRefreshing: true })
+          try {
+            const response = await api.post('/auth/refresh', { refresh_token: refreshToken })
+            const { access_token, refresh_token } = response.data
+            set({
+              accessToken: access_token,
+              refreshToken: refresh_token,
+              isRefreshing: false,
+            })
+          } catch {
+            set({
+              user: null,
+              accessToken: null,
+              refreshToken: null,
+              isAuthenticated: false,
+              isRefreshing: false,
+            })
+          } finally {
+            refreshPromise = null
+          }
+        })()
+
+        return refreshPromise
       },
     }),
     {
@@ -118,14 +148,10 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
         isDemo: state.isDemo,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state?.accessToken) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${state.accessToken}`
-        }
-      },
     }
   )
 )

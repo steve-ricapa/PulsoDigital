@@ -32,7 +32,7 @@ export function PsychologistInterventions() {
   const [newIntervention, setNewIntervention] = useState(false)
   const [interventionForm, setInterventionForm] = useState({
     student_id: '',
-    type: 'contact_made',
+    type: 'conversation',
     description: '',
     follow_up_date: '',
     outcome: '',
@@ -70,12 +70,13 @@ export function PsychologistInterventions() {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      contact_made: 'Contacto realizado',
+      conversation: 'Conversación',
       session_scheduled: 'Sesión programada',
       external_referral: 'Derivación externa',
-      follow_up_pending: 'Seguimiento pendiente',
-      case_closed: 'Caso cerrado',
-      observation: 'Observación',
+      group_activity: 'Actividad grupal',
+      follow_up: 'Seguimiento',
+      parent_contact: 'Contacto apoderado',
+      other: 'Otra',
     }
     return labels[type] || type
   }
@@ -89,10 +90,10 @@ export function PsychologistInterventions() {
         intervention_type: interventionForm.type,
         description: interventionForm.description,
         follow_up_date: interventionForm.follow_up_date || undefined,
-        outcome: interventionForm.type === 'case_closed' ? interventionForm.outcome : undefined,
+        outcome: interventionForm.outcome || undefined,
       })
       setNewIntervention(false)
-      setInterventionForm({ student_id: '', type: 'contact_made', description: '', follow_up_date: '', outcome: '' })
+      setInterventionForm({ student_id: '', type: 'conversation', description: '', follow_up_date: '', outcome: '' })
       const res = await api.get(`/interventions?page=1&size=20`)
       setInterventions(res.data.interventions)
     } catch {
@@ -143,12 +144,13 @@ export function PsychologistInterventions() {
           </div>
           <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }} className="input w-auto">
             <option value="">Todos los tipos</option>
-            <option value="contact_made">Contacto realizado</option>
+            <option value="conversation">Conversación</option>
             <option value="session_scheduled">Sesión programada</option>
             <option value="external_referral">Derivación externa</option>
-            <option value="follow_up_pending">Seguimiento pendiente</option>
-            <option value="case_closed">Caso cerrado</option>
-            <option value="observation">Observación</option>
+            <option value="group_activity">Actividad grupal</option>
+            <option value="follow_up">Seguimiento</option>
+            <option value="parent_contact">Contacto apoderado</option>
+            <option value="other">Otra</option>
           </select>
           <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="input w-auto">
             <option value="">Todos los estados</option>
@@ -254,12 +256,13 @@ export function PsychologistInterventions() {
               <div>
                 <label className="label">Tipo de intervención</label>
                 <select value={interventionForm.type} onChange={(e) => setInterventionForm({ ...interventionForm, type: e.target.value })} className="input">
-                  <option value="contact_made">Contacto realizado</option>
+                  <option value="conversation">Conversación</option>
                   <option value="session_scheduled">Sesión programada</option>
                   <option value="external_referral">Derivación externa</option>
-                  <option value="follow_up_pending">Seguimiento pendiente</option>
-                  <option value="case_closed">Caso cerrado</option>
-                  <option value="observation">Observación</option>
+                  <option value="group_activity">Actividad grupal</option>
+                  <option value="follow_up">Seguimiento</option>
+                  <option value="parent_contact">Contacto apoderado</option>
+                  <option value="other">Otra</option>
                 </select>
               </div>
 
@@ -285,18 +288,16 @@ export function PsychologistInterventions() {
                 />
               </div>
 
-              {interventionForm.type === 'case_closed' && (
-                <div>
-                  <label className="label">Resultado / Cierre</label>
-                  <textarea
-                    value={interventionForm.outcome}
-                    onChange={(e) => setInterventionForm({ ...interventionForm, outcome: e.target.value })}
-                    rows={2}
-                    className="input"
-                    placeholder="Describe el resultado o motivo de cierre..."
-                  />
-                </div>
-              )}
+              <div>
+                <label className="label">Resultado / Cierre (opcional)</label>
+                <textarea
+                  value={interventionForm.outcome}
+                  onChange={(e) => setInterventionForm({ ...interventionForm, outcome: e.target.value })}
+                  rows={2}
+                  className="input"
+                  placeholder="Describe el resultado o motivo de cierre..."
+                />
+              </div>
             </div>
 
             <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">

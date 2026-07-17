@@ -1,17 +1,29 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Set
+from uuid import uuid4
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_db
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PREFIX}/auth/login")
+
+_token_blacklist: Set[str] = set()
+
+
+def blacklist_token(token: str) -> None:
+    _token_blacklist.add(token)
+
+
+def is_token_blacklisted(token: str) -> bool:
+    return token in _token_blacklist
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -28,14 +40,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire, "type": "access"})
+    to_encode.update({"exp": expire, "type": "access", "jti": str(uuid4())})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
 def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode.update({"exp": expire, "type": "refresh"})
+    to_encode.update({"exp": expire, "type": "refresh", "jti": str(uuid4())})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
@@ -57,6 +69,13 @@ async def get_current_user(
 ):
     from app.models import User
 
+    if is_token_blacklisted(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     payload = decode_token(token)
     if payload.get("type") != "access":
         raise HTTPException(
@@ -71,7 +90,11 @@ async def get_current_user(
             detail="Invalid token payload",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    result = await db.execute(select(User).where(User.id == user_id))
+    result = await db.execute(
+        select(User)
+        .options(selectinload(User.student_profile), selectinload(User.psychologist_profile))
+        .where(User.id == user_id)
+    )
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
         raise HTTPException(
@@ -83,7 +106,7 @@ async def get_current_user(
 
 
 async def get_current_active_user(
-    current_user=None,
+    current_user: "User" = Depends(get_current_user),
 ):
     if current_user is None:
         raise HTTPException(
@@ -101,7 +124,8 @@ async def get_current_active_user(
 
 def require_roles(*allowed_roles: str):
     async def role_checker(current_user=Depends(get_current_user)):
-        if current_user.role.value not in allowed_roles and current_user.role not in allowed_roles:
+        role_value = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        if role_value not in allowed_roles and current_user.role not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions",

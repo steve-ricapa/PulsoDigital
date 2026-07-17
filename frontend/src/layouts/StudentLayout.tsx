@@ -1,23 +1,35 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../lib/utils'
-import { ClipboardList, Clock, Heart, LogOut, MessageCircle } from 'lucide-react'
-import { Chatbot } from '../student/components/Chatbot'
+import { ClipboardList, Clock, Heart, LogOut, MessageCircle, MessagesSquare } from 'lucide-react'
+import { DailyCheckin } from '../student/components/DailyCheckin'
 
 export function StudentLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [showDailyCheckin, setShowDailyCheckin] = useState(false)
 
   const navItems = [
     { path: '/pulso', label: 'Mi Pulso', icon: Heart },
     { path: '/pulso/checkin', label: 'Check-in', icon: ClipboardList },
     { path: '/pulso/historial', label: 'Historial', icon: Clock },
+    { path: '/pulso/chat', label: 'Chat', icon: MessagesSquare },
     { path: '/ayuda', label: 'Quiero apoyo', icon: MessageCircle },
   ]
 
+  useEffect(() => {
+    if (!user?.id || user.role !== 'student') return
+    const today = new Date().toISOString().split('T')[0]
+    const key = `daily-checkin-${user.id}`
+    if (localStorage.getItem(key) !== today) {
+      setShowDailyCheckin(true)
+    }
+  }, [user?.id, user?.role])
+
   const handleLogout = async () => {
     await logout()
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -70,7 +82,7 @@ export function StudentLayout() {
       <main className="max-w-4xl mx-auto px-4 py-6">
         <Outlet />
       </main>
-      <Chatbot />
+      {showDailyCheckin && <DailyCheckin onComplete={() => setShowDailyCheckin(false)} />}
     </div>
   )
 }
