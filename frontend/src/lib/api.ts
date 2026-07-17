@@ -36,7 +36,7 @@ api.interceptors.response.use(
     const originalRequest = error.config
     const { isDemo, refreshToken, isAuthenticated } = useAuthStore.getState()
 
-    if (isDemo && (!error.response || error.code === 'ERR_NETWORK')) {
+    if (isDemo) {
       const url = error.config?.url || ''
       return Promise.resolve({ data: getMockData(url), status: 200, statusText: 'OK', headers: {}, config: error.config })
     }
@@ -103,15 +103,53 @@ function getMockData(url: string): unknown {
   }
 
   if (url.includes('/dashboard/students') && !url.includes('/trend') && !url.includes('/detail')) {
+    const allStudents = [
+      { id: 'mock-001', internal_id: 'EST-2026-001', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.84, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 0 },
+      { id: 'mock-002', internal_id: 'EST-2026-002', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.34, risk_level: 'high', trend: 'declining', weeks_declining: 3, sudden_drop: true, last_survey_date: '2026-07-15', pending_requests: 1 },
+      { id: 'mock-003', internal_id: 'EST-2026-003', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.67, risk_level: 'moderate', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 0 },
+      { id: 'mock-004', internal_id: 'EST-2026-004', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.72, risk_level: 'low', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 0 },
+      { id: 'mock-005', internal_id: 'EST-2026-005', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.41, risk_level: 'high', trend: 'declining', weeks_declining: 4, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 2 },
+      { id: 'mock-006', internal_id: 'EST-2026-006', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.88, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 0 },
+      { id: 'mock-007', internal_id: 'EST-2026-007', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.55, risk_level: 'moderate', trend: 'declining', weeks_declining: 2, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 0 },
+      { id: 'mock-008', internal_id: 'EST-2026-008', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.91, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 0 },
+      { id: 'mock-009', internal_id: 'EST-2026-009', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.48, risk_level: 'moderate', trend: 'declining', weeks_declining: 2, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 1 },
+      { id: 'mock-010', internal_id: 'EST-2026-010', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.76, risk_level: 'low', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-15', pending_requests: 0 },
+      { id: 'mock-011', internal_id: 'EST-2026-011', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.62, risk_level: 'moderate', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-14', pending_requests: 0 },
+      { id: 'mock-012', internal_id: 'EST-2026-012', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.38, risk_level: 'high', trend: 'declining', weeks_declining: 5, sudden_drop: true, last_survey_date: '2026-07-14', pending_requests: 1 },
+      { id: 'mock-013', internal_id: 'EST-2026-013', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.82, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-14', pending_requests: 0 },
+      { id: 'mock-014', internal_id: 'EST-2026-014', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.71, risk_level: 'low', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-14', pending_requests: 0 },
+      { id: 'mock-015', internal_id: 'EST-2026-015', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.53, risk_level: 'moderate', trend: 'declining', weeks_declining: 1, sudden_drop: false, last_survey_date: '2026-07-14', pending_requests: 0 },
+      { id: 'mock-016', internal_id: 'EST-2026-016', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.44, risk_level: 'high', trend: 'declining', weeks_declining: 3, sudden_drop: false, last_survey_date: '2026-07-13', pending_requests: 1 },
+      { id: 'mock-017', internal_id: 'EST-2026-017', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.79, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-13', pending_requests: 0 },
+      { id: 'mock-018', internal_id: 'EST-2026-018', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.65, risk_level: 'moderate', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-13', pending_requests: 0 },
+      { id: 'mock-019', internal_id: 'EST-2026-019', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.87, risk_level: 'low', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-13', pending_requests: 0 },
+      { id: 'mock-020', internal_id: 'EST-2026-020', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.58, risk_level: 'moderate', trend: 'declining', weeks_declining: 2, sudden_drop: false, last_survey_date: '2026-07-12', pending_requests: 0 },
+      { id: 'mock-021', internal_id: 'EST-2026-021', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.73, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-12', pending_requests: 0 },
+      { id: 'mock-022', internal_id: 'EST-2026-022', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.47, risk_level: 'moderate', trend: 'declining', weeks_declining: 2, sudden_drop: false, last_survey_date: '2026-07-12', pending_requests: 0 },
+      { id: 'mock-023', internal_id: 'EST-2026-023', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.92, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-11', pending_requests: 0 },
+      { id: 'mock-024', internal_id: 'EST-2026-024', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.36, risk_level: 'high', trend: 'sudden_drop', weeks_declining: 0, sudden_drop: true, last_survey_date: '2026-07-11', pending_requests: 2 },
+      { id: 'mock-025', internal_id: 'EST-2026-025', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.69, risk_level: 'low', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2026-07-11', pending_requests: 0 },
+    ]
+    let filtered = allStudents
+    const searchMatch = url.match(/[?&]search=([^&]*)/)
+    if (searchMatch?.[1]) {
+      const q = searchMatch[1].toLowerCase()
+      filtered = filtered.filter(s => s.internal_id.toLowerCase().includes(q))
+    }
+    const riskMatch = url.match(/[?&]risk_level=([^&]*)/)
+    if (riskMatch?.[1]) {
+      filtered = filtered.filter(s => s.risk_level === riskMatch[1])
+    }
+    const pageMatch = url.match(/[?&]page=(\d+)/)
+    const page = pageMatch ? parseInt(pageMatch[1]) : 1
+    const pageSize = 20
+    const start = (page - 1) * pageSize
     return {
-      students: [
-        { id: 's1', internal_id: 'EST-042', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.31, risk_level: 'high', trend: 'declining', weeks_declining: 3, sudden_drop: true, last_survey_date: '2025-07-07', pending_requests: 1 },
-        { id: 's2', internal_id: 'EST-108', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.38, risk_level: 'high', trend: 'declining', weeks_declining: 4, sudden_drop: false, last_survey_date: '2025-07-07', pending_requests: 0 },
-        { id: 's3', internal_id: 'EST-075', classroom_name: '2do B', grade: 2, section: 'B', latest_wellbeing: 0.45, risk_level: 'medium', trend: 'declining', weeks_declining: 2, sudden_drop: false, last_survey_date: '2025-07-07', pending_requests: 0 },
-        { id: 's4', internal_id: 'EST-015', classroom_name: '3ro A', grade: 3, section: 'A', latest_wellbeing: 0.78, risk_level: 'low', trend: 'stable', weeks_declining: 0, sudden_drop: false, last_survey_date: '2025-07-07', pending_requests: 0 },
-        { id: 's5', internal_id: 'EST-091', classroom_name: '1ro A', grade: 1, section: 'A', latest_wellbeing: 0.82, risk_level: 'low', trend: 'improving', weeks_declining: 0, sudden_drop: false, last_survey_date: '2025-07-07', pending_requests: 0 },
-      ],
-      total: 5, page: 1, size: 20, pages: 1,
+      students: filtered.slice(start, start + pageSize),
+      total: filtered.length,
+      page,
+      size: pageSize,
+      pages: Math.ceil(filtered.length / pageSize),
     }
   }
 

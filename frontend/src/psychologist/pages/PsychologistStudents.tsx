@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { cn, formatDate, getRiskLevelColor, getRiskLevelLabel } from '../../lib/utils'
 import { Search, ChevronLeft, ChevronRight, AlertCircle, TrendingDown, TrendingUp, Minus } from 'lucide-react'
@@ -19,6 +20,7 @@ interface StudentListItem {
 }
 
 export function PsychologistStudents() {
+  const navigate = useNavigate()
   const [students, setStudents] = useState<StudentListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -148,7 +150,7 @@ export function PsychologistStudents() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {students.map((student) => (
-                <tr key={student.id} className="hover:bg-gray-50">
+                <tr key={student.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/psicologo/estudiantes/${student.id}`)}>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -218,20 +220,58 @@ export function PsychologistStudents() {
             <p className="text-sm text-gray-600">
               Mostrando {((page - 1) * 20) + 1} a {Math.min(page * 20, total)} de {total}
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
+              <button
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+              >
+                &laquo;
+              </button>
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
+              {(() => {
+                const pageNumbers: number[] = []
+                const maxVisible = 5
+                let start = Math.max(1, page - Math.floor(maxVisible / 2))
+                let end = Math.min(pages, start + maxVisible - 1)
+                if (end - start + 1 < maxVisible) {
+                  start = Math.max(1, end - maxVisible + 1)
+                }
+                for (let i = start; i <= end; i++) pageNumbers.push(i)
+                return pageNumbers.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={cn(
+                      'px-3 py-1.5 text-sm rounded-lg border',
+                      p === page
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-gray-300 hover:bg-gray-100'
+                    )}
+                  >
+                    {p}
+                  </button>
+                ))
+              })()}
               <button
                 onClick={() => setPage(p => Math.min(pages, p + 1))}
                 disabled={page === pages}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setPage(pages)}
+                disabled={page === pages}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50"
+              >
+                &raquo;
               </button>
             </div>
           </div>

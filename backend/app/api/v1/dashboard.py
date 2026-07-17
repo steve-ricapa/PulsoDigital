@@ -315,20 +315,68 @@ async def get_dashboard_students(
     current_user: User = Depends(require_roles("psychologist", "admin", "school_admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(Student).options(selectinload(Student.classroom)).where(Student.is_active == True)
+    base_query = select(Student).options(selectinload(Student.classroom)).where(Student.is_active == True)
 
     if current_user.role == UserRole.PSYCHOLOGIST:
-        query = query.join(Classroom).where(Classroom.psychologist_id == current_user.psychologist_profile.id)
+        base_query = base_query.join(Classroom).where(Classroom.psychologist_id == current_user.psychologist_profile.id)
     elif current_user.role == UserRole.SCHOOL_ADMIN:
-        query = query.where(Student.school_id == current_user.school_id)
+        base_query = base_query.where(Student.school_id == current_user.school_id)
 
     if search:
-        query = query.where(Student.internal_id.ilike(f"%{search}%"))
+        base_query = base_query.where(Student.internal_id.ilike(f"%{search}%"))
 
-    students = (await db.execute(query.order_by(Student.internal_id.asc()))).scalars().all()
+    if not trend:
+        total = await db.scalar(select(func.count()).select_from(base_query.subquery())) or 0
+        paginated_query = base_query.order_by(Student.internal_id.asc()).offset((page - 1) * size).limit(size)
+        students = (await db.execute(paginated_query)).scalars().all()
 
-    items: List[StudentDashboardListItem] = []
-    for student in students:
+        items: List[StudentDashboardListItem] = []
+        for student in students:
+            scores = (await db.execute(
+                select(WellbeingScore)
+                .where(WellbeingScore.student_id == student.id)
+                .order_by(desc(WellbeingScore.calculated_at))
+                .limit(5)
+            )).scalars().all()
+            latest = scores[0] if scores else None
+            student_trend, weeks_declining, sudden_drop = _compute_trend_from_scores(scores)
+            pending_requests = await db.scalar(
+                select(func.count(SupportRequest.id)).where(
+                    and_(SupportRequest.student_id == student.id, SupportRequest.status == "pending")
+                )
+            ) or 0
+
+            item = StudentDashboardListItem(
+                id=student.id,
+                internal_id=student.internal_id,
+                classroom_name=student.classroom.name if student.classroom else "Sin aula",
+                grade=student.classroom.grade if student.classroom else 0,
+                section=student.classroom.section if student.classroom else "-",
+                latest_wellbeing=round(float(latest.overall_score), 3) if latest else None,
+                risk_level=_enum_value(latest.risk_level) if latest else _enum_value(RiskLevel.LOW),
+                trend=student_trend,
+                weeks_declining=weeks_declining,
+                sudden_drop=sudden_drop,
+                last_survey_date=latest.calculated_at if latest else None,
+                pending_requests=pending_requests,
+            )
+
+            if risk_level and item.risk_level != _enum_value(risk_level):
+                continue
+            items.append(item)
+
+        return StudentDashboardListResponse(
+            students=items,
+            total=total,
+            page=page,
+            size=size,
+            pages=(total + size - 1) // size,
+        )
+
+    all_students = (await db.execute(base_query.order_by(Student.internal_id.asc()))).scalars().all()
+
+    items = []
+    for student in all_students:
         scores = (await db.execute(
             select(WellbeingScore)
             .where(WellbeingScore.student_id == student.id)
