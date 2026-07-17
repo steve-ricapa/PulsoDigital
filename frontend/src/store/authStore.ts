@@ -21,11 +21,13 @@ interface AuthState {
   isAuthenticated: boolean
   isDemo: boolean
   isRefreshing: boolean
+  chatSessionId: string | null
   login: (email: string, password: string) => Promise<void>
   loginDemo: (role: User['role']) => void
   logout: () => Promise<void>
   setUser: (user: User) => void
   refreshAccessToken: () => Promise<void>
+  setChatSessionId: (id: string | null) => void
 }
 
 const DEMO_USERS: Record<User['role'], User> = {
@@ -62,6 +64,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isDemo: false,
       isRefreshing: false,
+      chatSessionId: null,
 
       login: async (email: string, password: string) => {
         const response = await api.post('/auth/login', { email, password })
@@ -88,7 +91,14 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async () => {
-        const { accessToken, isDemo } = get()
+        const { accessToken, isDemo, chatSessionId } = get()
+        if (!isDemo && chatSessionId) {
+          try {
+            await api.delete(`/chat/session/${chatSessionId}`)
+          } catch {
+            // ignore
+          }
+        }
         if (!isDemo && accessToken) {
           try {
             await api.post('/auth/logout')
@@ -103,8 +113,11 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isDemo: false,
           isRefreshing: false,
+          chatSessionId: null,
         })
       },
+
+      setChatSessionId: (id: string | null) => set({ chatSessionId: id }),
 
       setUser: (user: User) => set({ user }),
 
@@ -151,6 +164,7 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
         isDemo: state.isDemo,
+        chatSessionId: state.chatSessionId,
       }),
     }
   )

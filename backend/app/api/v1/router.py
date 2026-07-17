@@ -5,6 +5,7 @@ from app.api.v1 import (
     interventions, dashboard, notifications, audit,
 )
 from app.ml.router import router as ml_router
+from app.chat.router import router as chat_router
 
 api_router = APIRouter()
 
@@ -19,3 +20,4 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboar
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
 api_router.include_router(ml_router, prefix="/ml", tags=["ml"])
+api_router.include_router(chat_router, prefix="/chat", tags=["chat"])

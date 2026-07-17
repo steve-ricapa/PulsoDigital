@@ -42,6 +42,11 @@ services:
       CORS_ORIGINS: '["http://34.238.159.1:8080","http://34.238.159.1"]'
       LOG_LEVEL: INFO
       ML_ENABLED: false
+      AZURE_FOUNDRY_BASE_URL: https://aoai-sophia-xoc-eus2.services.ai.azure.com/openai/v1
+      AZURE_FOUNDRY_API_KEY: ${AZURE_FOUNDRY_API_KEY}
+      AZURE_FOUNDRY_MODEL: gpt-5-mini
+      CHAT_SESSION_TTL_MINUTES: 60
+      CHAT_MEMORY_WINDOW: 10
     ports:
       - "8000:8000"
     depends_on:

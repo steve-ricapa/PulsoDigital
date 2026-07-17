@@ -66,6 +66,12 @@ class Settings(BaseSettings):
     PAGINATION_DEFAULT_SIZE: int = 20
     PAGINATION_MAX_SIZE: int = 100
 
+    AZURE_FOUNDRY_BASE_URL: str = ""
+    AZURE_FOUNDRY_API_KEY: str = ""
+    AZURE_FOUNDRY_MODEL: str = "gpt-5-mini"
+    CHAT_SESSION_TTL_MINUTES: int = 60
+    CHAT_MEMORY_WINDOW: int = 10
+
 
 @lru_cache()
 def get_settings() -> Settings:
