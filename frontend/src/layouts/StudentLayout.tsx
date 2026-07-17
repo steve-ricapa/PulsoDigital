@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../lib/utils'
-import { ClipboardList, Clock, Heart, LogOut, MessageCircle, MessagesSquare } from 'lucide-react'
+import { ClipboardList, Heart, LogOut, MessageCircle, MessagesSquare } from 'lucide-react'
 import { DailyCheckin } from '../student/components/DailyCheckin'
 
 export function StudentLayout() {
@@ -13,7 +13,6 @@ export function StudentLayout() {
   const navItems = [
     { path: '/pulso', label: 'Mi Pulso', icon: Heart },
     { path: '/pulso/checkin', label: 'Check-in', icon: ClipboardList },
-    { path: '/pulso/historial', label: 'Historial', icon: Clock },
     { path: '/pulso/chat', label: 'Chat', icon: MessagesSquare },
     { path: '/ayuda', label: 'Quiero apoyo', icon: MessageCircle },
   ]

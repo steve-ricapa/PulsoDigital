@@ -5,7 +5,6 @@ import { StudentLayout } from './layouts/StudentLayout'
 import { PsychologistLayout } from './layouts/PsychologistLayout'
 import { StudentDashboard } from './student/pages/StudentDashboard'
 import { StudentCheckIn } from './student/pages/StudentCheckin'
-import { StudentHistory } from './student/pages/StudentHistory'
 import { StudentSupport } from './student/pages/StudentSupport'
 import { Chatbot as StudentChat } from './student/components/Chatbot'
 import { PsychologistDashboard } from './psychologist/pages/PsychologistDashboard'
@@ -58,7 +57,6 @@ function AppRoutes() {
         }>
           <Route path="/pulso" element={<StudentDashboard />} />
           <Route path="/pulso/checkin" element={<StudentCheckIn />} />
-          <Route path="/pulso/historial" element={<StudentHistory />} />
           <Route path="/pulso/chat" element={<StudentChat />} />
           <Route path="/ayuda" element={<StudentSupport />} />
         </Route>
