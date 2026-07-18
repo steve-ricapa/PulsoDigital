@@ -44,16 +44,17 @@ export function Chatbot() {
   }, [setChatSessionId])
 
   useEffect(() => {
+    let cleanupSid: string | null = null
     if (chatSessionId) {
       setSessionReady(true)
+      cleanupSid = chatSessionId
     } else {
       createSession()
     }
     inputRef.current?.focus()
     return () => {
-      const sid = useAuthStore.getState().chatSessionId
-      if (sid && !useAuthStore.getState().isDemo) {
-        api.delete(`/chat/session/${sid}`).catch(() => {})
+      if (cleanupSid && !useAuthStore.getState().isDemo) {
+        api.delete(`/chat/session/${cleanupSid}`).catch(() => {})
       }
     }
   }, [chatSessionId, createSession])
