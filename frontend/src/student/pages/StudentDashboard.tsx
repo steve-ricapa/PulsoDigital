@@ -171,7 +171,7 @@ export function StudentDashboard() {
                 key={day}
                 className={`
                   relative flex items-center justify-center h-10 rounded-lg text-sm transition-all
-                  ${isToday ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
+                  ${isToday ? 'ring-2 ring-primary-500 ring-offset-1' : ''}
                   ${completed ? 'bg-green-100 text-green-700 font-medium' : ''}
                   ${!completed && !isFuture ? 'bg-gray-50 text-gray-400' : ''}
                   ${isFuture ? 'text-gray-300' : ''}
@@ -221,8 +221,8 @@ export function StudentDashboard() {
 
       <div className="card p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-purple-600" />
+          <div className="w-10 h-10 rounded-xl bg-lavender-100 flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-lavender-600" />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">Lo que viene</h2>
         </div>
@@ -241,7 +241,7 @@ export function StudentDashboard() {
                   <p className="text-xs text-gray-400 mt-0.5">con {item.psychologist_name}</p>
                 </div>
                 {item.follow_up_date && (
-                  <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-1 rounded whitespace-nowrap">
+                  <span className="text-xs font-medium text-lavender-700 bg-lavender-50 px-2 py-1 rounded whitespace-nowrap">
                     {formatDate(item.follow_up_date, { month: 'short', day: 'numeric' })}
                   </span>
                 )}

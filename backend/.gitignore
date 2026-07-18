@@ -59,6 +59,3 @@ ml/models/*.pkl
 
 # Docker
 docker-compose.override.yml
-
-# Alembic
-migrations/versions/*.py

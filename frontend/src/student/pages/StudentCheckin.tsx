@@ -137,7 +137,7 @@ export function StudentCheckIn() {
                   <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap">
                     {opt.label}
                   </span>
-                  {answer === opt.value && <Check className="absolute top-2 right-2 w-5 h-5 text-blue-600" />}
+                  {answer === opt.value && <Check className="absolute top-2 right-2 w-5 h-5 text-primary-600" />}
                 </button>
               ))}
             </div>
@@ -161,7 +161,7 @@ export function StudentCheckIn() {
               onChange={(e) => handleAnswer(currentQuestion.id, parseInt(e.target.value))}
               className="w-full"
             />
-            <p className="text-center text-2xl font-bold text-blue-600">
+            <p className="text-center text-2xl font-bold text-primary-600">
               {typeof answer === 'number' ? answer : min_value || 0}
             </p>
           </div>
@@ -179,12 +179,12 @@ export function StudentCheckIn() {
                   className={cn(
                     'w-full text-left p-4 rounded-xl border-2 transition-colors',
                     answer === opt.trim()
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
                   )}
                 >
                   <span className="font-medium text-gray-900">{opt.trim()}</span>
-                  {answer === opt.trim() && <Check className="float-right w-5 h-5 text-blue-600 mt-0.5" />}
+                  {answer === opt.trim() && <Check className="float-right w-5 h-5 text-primary-600 mt-0.5" />}
                 </button>
               ))}
             </div>
@@ -220,10 +220,10 @@ export function StudentCheckIn() {
                   onClick={() => handleAnswer(currentQuestion.id, opt.value)}
                   className={cn(
                     'flex flex-col items-center gap-2 px-8 py-6 rounded-xl border-2 transition-colors min-w-[120px]',
-                    answer === opt.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    answer === opt.value ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
                   )}
                 >
-                  <span className="text-2xl text-blue-600">{opt.icon}</span>
+                  <span className="text-2xl text-primary-600">{opt.icon}</span>
                   <span className="font-medium text-gray-900">{opt.label}</span>
                 </button>
               ))}
@@ -252,7 +252,7 @@ export function StudentCheckIn() {
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-300"
+            className="h-full bg-accent-400 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>

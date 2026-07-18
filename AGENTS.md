@@ -7,6 +7,40 @@
 - Student UI must not show risk labels.
 - Anonymous support language must stay as "Quiero contar algo" / "Quiero pedir apoyo", not "denuncia anonima".
 
+## Color Palette: "Bienestar Seguro"
+Aplicar la regla de colorimetria **60-30-10**. El objetivo es un entorno de **tranquilidad, empatia y cero miedo** — sin contrastes duros ni colores clinicos.
+
+### 1. Dominante (60%) - Fondo y Calma
+- **Blanco Roto / Crema Suave:** `#F7F9FA`
+- Fondos de pantalla, tarjetas grandes. Relaja la vista, reduce fatiga visual.
+- En Tailwind: usar `bg-[#F7F9FA]` o `bg-surface` (definido en @theme).
+
+### 2. Secundario (30%) - Estructura y Empatia
+- **Azul Menta / Turquesa Pastel:** `#4FA3A5` (activo) + `#E6F4F4` (fondos de contenedor/burbujas)
+- Transmite serenidad, frescura y salud mental. Invita a la autorreflexion sin juzgar.
+- En Tailwind: `primary-*` en @theme. `primary-500` = `#4FA3A5`, `primary-100` = `#E6F4F4`.
+
+### 3. Apoyo Emocional - Calidez Humana
+- **Lavanda Suave:** `#857CBF`
+- Para introspeccion (diario de emociones, reflexion). Conexion, empatia, autocuidado.
+- En Tailwind: `lavender-*` en @theme. `lavender-500` = `#857CBF`.
+
+### 4. Acento (10%) - Accion Amable
+- **Durazno / Coral Suave:** `#F39E7D`
+- Solo para botones principales (CTA), notificaciones importantes, "Pedir ayuda".
+- Cercania, amabilidad, optimismo. Reemplaza rojo/naranja de alerta.
+- En Tailwind: `accent-*` en @theme. `accent-400` = `#F39E7D`.
+
+### 5. Texto Principal
+- **Azul Pizarra Oscuro:** `#2A3B47`
+- Nunca negro puro (`#000000`). Legibilidad WCAG con acabado suave.
+- En Tailwind: `text-[#2A3B47]` o variable CSS `--color-text`.
+
+### Reglas de Aplicacion UX/UI
+1. **Mood Tracker sin alarmas:** Un dia malo = azul grisaceo suave o lila oscuro. Durazno brillante solo para dias buenos o boton "conectar".
+2. **Botones de Interaccion Segura:** CTA = Durazno (`#F39E7D`). Texto: "Quiero conversar" / "Separar un espacio", nunca "Solicitar Cita".
+3. **Contraste Accesible:** Texto Azul Pizarra sobre fondos Menta o Blanco Roto = contraste ideal WCAG.
+
 ## Repo Reality
 - Frontend and backend are both runnable from Docker Compose at the repo root: `docker-compose.yml`.
 - Backend entrypoint is `backend/app/main.py`.

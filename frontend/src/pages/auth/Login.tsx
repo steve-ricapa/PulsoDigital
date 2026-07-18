@@ -12,7 +12,7 @@ const DEMO_PROFILES = [
     description: 'Check-in, historial, pedir apoyo',
     email: 'estudiante@colegio.edu',
     icon: GraduationCap,
-    color: 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100',
+    color: 'bg-primary-50 border-primary-200 text-primary-700 hover:bg-primary-100',
   },
   {
     role: 'psychologist' as const,
@@ -20,7 +20,7 @@ const DEMO_PROFILES = [
     description: 'Dashboard, alertas, intervenciones',
     email: 'psicologo@colegio.edu',
     icon: Stethoscope,
-    color: 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100',
+    color: 'bg-lavender-50 border-lavender-200 text-lavender-700 hover:bg-lavender-100',
   },
 ]
 
@@ -89,7 +89,7 @@ export function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-accent-400 flex items-center justify-center mx-auto mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Pulso Digital</h1>

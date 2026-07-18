@@ -30,10 +30,10 @@ export function getRiskLevelColor(level: string): string {
   const colors: Record<string, string> = {
     low: 'bg-success-100 text-success-600',
     moderate: 'bg-warning-100 text-warning-600',
-    high: 'bg-orange-100 text-orange-600',
+    high: 'bg-accent-100 text-accent-600',
     critical: 'bg-danger-100 text-danger-600',
   }
-  return colors[level] || 'bg-gray-100 text-gray-600'
+  return colors[level] || 'bg-primary-50 text-primary-600'
 }
 
 export function getRiskLevelLabel(level: string): string {

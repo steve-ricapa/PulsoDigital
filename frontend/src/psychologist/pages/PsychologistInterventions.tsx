@@ -180,8 +180,8 @@ export function PsychologistInterventions() {
                 <tr key={intervention.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-700 font-medium text-sm">{intervention.student_internal_id.charAt(0)}</span>
+                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <span className="text-primary-700 font-medium text-sm">{intervention.student_internal_id.charAt(0)}</span>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{intervention.student_internal_id}</p>
@@ -193,7 +193,7 @@ export function PsychologistInterventions() {
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-600">{intervention.classroom_name}</td>
                   <td className="px-4 py-4">
-                    <span className="badge bg-blue-100 text-blue-700">{getTypeLabel(intervention.intervention_type)}</span>
+                    <span className="badge bg-primary-100 text-primary-700">{getTypeLabel(intervention.intervention_type)}</span>
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900 max-w-xs truncate">{intervention.description}</td>
                   <td className="px-4 py-4">

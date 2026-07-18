@@ -15,7 +15,7 @@ export default defineConfig({
         name: 'Pulso Digital',
         short_name: 'Pulso',
         description: 'Plataforma de bienestar escolar',
-        theme_color: '#2563eb',
+        theme_color: '#4FA3A5',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',

@@ -99,7 +99,7 @@ export function PsychologistAlerts() {
         </div>
         <div className="flex gap-2">
           <span className="badge bg-red-100 text-red-600">{riskCounts.critical || 0} Críticos</span>
-          <span className="badge bg-orange-100 text-orange-600">{riskCounts.high || 0} Altos</span>
+          <span className="badge bg-accent-100 text-accent-600">{riskCounts.high || 0} Altos</span>
           <span className="badge bg-yellow-100 text-yellow-600">{riskCounts.moderate || 0} Moderados</span>
         </div>
       </div>
@@ -134,11 +134,11 @@ export function PsychologistAlerts() {
       ) : (
         <div className="space-y-4">
           {alerts.map((alert) => (
-            <div key={alert.student_id} className="card p-6 border-l-4" style={{ borderLeftColor: getRiskLevelColor(alert.risk_level).includes('green') ? '#22c55e' : getRiskLevelColor(alert.risk_level).includes('yellow') ? '#f59e0b' : getRiskLevelColor(alert.risk_level).includes('red') ? '#ef4444' : '#f97316' }}>
+            <div key={alert.student_id} className="card p-6 border-l-4" style={{ borderLeftColor: getRiskLevelColor(alert.risk_level).includes('success') ? '#4caf76' : getRiskLevelColor(alert.risk_level).includes('warning') ? '#d4a843' : getRiskLevelColor(alert.risk_level).includes('danger') ? '#d95555' : '#e8855f' }}>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: getRiskLevelColor(alert.risk_level).includes('green') ? '#dcfce7' : getRiskLevelColor(alert.risk_level).includes('yellow') ? '#fef3c7' : getRiskLevelColor(alert.risk_level).includes('red') ? '#fef2f2' : '#fff7ed' }}>
-                    <span className="text-lg font-bold" style={{ color: getRiskLevelColor(alert.risk_level).includes('green') ? '#16a34a' : getRiskLevelColor(alert.risk_level).includes('yellow') ? '#d97706' : getRiskLevelColor(alert.risk_level).includes('red') ? '#dc2626' : '#ea580c' }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: getRiskLevelColor(alert.risk_level).includes('success') ? '#dcf5e6' : getRiskLevelColor(alert.risk_level).includes('warning') ? '#faf0d5' : getRiskLevelColor(alert.risk_level).includes('danger') ? '#fdf4f4' : '#fef5f0' }}>
+                    <span className="text-lg font-bold" style={{ color: getRiskLevelColor(alert.risk_level).includes('success') ? '#3a9963' : getRiskLevelColor(alert.risk_level).includes('warning') ? '#b8922f' : getRiskLevelColor(alert.risk_level).includes('danger') ? '#c43c3c' : '#d46d45' }}>
                       {getRiskLevelLabel(alert.risk_level).charAt(0)}
                     </span>
                   </div>

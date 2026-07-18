@@ -68,13 +68,13 @@ export function StudentSupport() {
             className={cn(
               'w-full p-4 rounded-xl border-2 transition-all text-left flex items-start gap-4',
               selectedType === type.value
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                ? 'border-primary-500 bg-primary-50'
+                : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
             )}
           >
             <div className={cn(
               'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0',
-              selectedType === type.value ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+              selectedType === type.value ? 'bg-accent-400 text-white' : 'bg-gray-100 text-gray-600'
             )}>
               <type.icon className="w-6 h-6" />
             </div>
@@ -83,7 +83,7 @@ export function StudentSupport() {
               <p className="text-sm text-gray-600 mt-1">{type.description}</p>
             </div>
             {selectedType === type.value && (
-              <CheckCircle className="w-6 h-6 text-blue-600 flex-shrink-0" />
+              <CheckCircle className="w-6 h-6 text-primary-600 flex-shrink-0" />
             )}
           </button>
         ))}
@@ -152,8 +152,8 @@ export function StudentSupport() {
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowConfirm(false)}>
           <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-              <Send className="w-8 h-8 text-blue-600" />
+            <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
+              <Send className="w-8 h-8 text-primary-600" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">Confirmar envío</h3>
             <p className="text-gray-600 text-center mb-6">

@@ -214,7 +214,7 @@ export function PsychologistChatReports() {
               {detail.risk_signals.length > 0 && (
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-orange-500" />
+                    <AlertTriangle className="w-4 h-4 text-accent-500" />
                     Señales detectadas
                   </h3>
                   <div className="flex gap-1.5 flex-wrap">
@@ -242,7 +242,7 @@ export function PsychologistChatReports() {
                       <div className={cn(
                         'max-w-[80%] rounded-xl px-4 py-2.5 text-sm',
                         msg.role === 'user'
-                          ? 'bg-blue-50 text-blue-800 border border-blue-100'
+                          ? 'bg-primary-50 text-primary-800 border border-primary-100'
                           : 'bg-gray-100 text-gray-700'
                       )}>
                         <span className="text-[10px] font-medium text-gray-400 block mb-1">

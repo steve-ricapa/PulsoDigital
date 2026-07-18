@@ -70,16 +70,16 @@ export function StudentHistory() {
           <p className="text-gray-600 mt-1">Evolución de tu bienestar en el tiempo</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setViewMode('chart')} className={cn('px-3 py-1.5 rounded-lg text-sm font-medium', viewMode === 'chart' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100')}>Gráfico</button>
-          <button onClick={() => setViewMode('list')} className={cn('px-3 py-1.5 rounded-lg text-sm font-medium', viewMode === 'list' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100')}>Lista</button>
+          <button onClick={() => setViewMode('chart')} className={cn('px-3 py-1.5 rounded-lg text-sm font-medium', viewMode === 'chart' ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-100')}>Gráfico</button>
+          <button onClick={() => setViewMode('list')} className={cn('px-3 py-1.5 rounded-lg text-sm font-medium', viewMode === 'list' ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-100')}>Lista</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Activity className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+              <Activity className="w-6 h-6 text-primary-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Promedio General</p>
@@ -100,8 +100,8 @@ export function StudentHistory() {
         </div>
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-              <Shield className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 rounded-xl bg-lavender-100 flex items-center justify-center">
+              <Shield className="w-6 h-6 text-lavender-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Nivel actual</p>
@@ -133,8 +133,8 @@ export function StudentHistory() {
               <svg className="w-full h-full" viewBox="0 0 800 256" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                    <stop offset="0%" stopColor="#4FA3A5" stopOpacity="0.3" />
+                    <stop offset="100%" stopColor="#4FA3A5" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <path
@@ -143,7 +143,7 @@ export function StudentHistory() {
                     const y = 256 - point.overall * 256
                     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
                   }).join(' ')}
-                  stroke="#3b82f6"
+                  stroke="#4FA3A5"
                   strokeWidth="2"
                   fill="none"
                   strokeLinecap="round"
@@ -163,7 +163,7 @@ export function StudentHistory() {
                     cx={(i / Math.max(1, filteredTrend.length - 1)) * 800}
                     cy={256 - point.overall * 256}
                     r="4"
-                    fill="#3b82f6"
+                    fill="#4FA3A5"
                   />
                 ))}
               </svg>
@@ -183,7 +183,7 @@ export function StudentHistory() {
                       <span className="text-sm text-gray-600 w-24">{formatDate(point.date, { weekday: 'short', day: '2-digit', month: 'short' })}</span>
                       <div className="w-40 h-8 bg-gray-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                          className="h-full bg-accent-400 rounded-full transition-all duration-300"
                           style={{ width: `${point.overall * 100}%` }}
                         />
                       </div>
@@ -199,17 +199,17 @@ export function StudentHistory() {
         )}
 
         <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <p className="text-2xl font-bold text-blue-600">{latest ? Math.round(latest.emotional * 100) : 0}%</p>
-            <p className="text-xs text-blue-700">Emocional</p>
+          <div className="p-4 bg-primary-50 rounded-lg">
+            <p className="text-2xl font-bold text-primary-600">{latest ? Math.round(latest.emotional * 100) : 0}%</p>
+            <p className="text-xs text-primary-700">Emocional</p>
           </div>
           <div className="p-4 bg-green-50 rounded-lg">
             <p className="text-2xl font-bold text-green-600">{latest ? Math.round(latest.safety * 100) : 0}%</p>
             <p className="text-xs text-green-700">Seguridad</p>
           </div>
-          <div className="p-4 bg-purple-50 rounded-lg">
-            <p className="text-2xl font-bold text-purple-600">{latest ? Math.round(latest.belonging * 100) : 0}%</p>
-            <p className="text-xs text-purple-700">Pertenencia</p>
+          <div className="p-4 bg-lavender-50 rounded-lg">
+            <p className="text-2xl font-bold text-lavender-600">{latest ? Math.round(latest.belonging * 100) : 0}%</p>
+            <p className="text-xs text-lavender-700">Pertenencia</p>
           </div>
         </div>
       </div>

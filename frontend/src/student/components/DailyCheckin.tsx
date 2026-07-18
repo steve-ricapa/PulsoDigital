@@ -11,14 +11,14 @@ interface DailyCheckinProps {
 
 const MOOD_OPTIONS = [
   { value: 5, emoji: '😊', label: 'Genial', color: 'bg-green-100 border-green-400 text-green-700' },
-  { value: 4, emoji: '🙂', label: 'Bien', color: 'bg-blue-100 border-blue-400 text-blue-700' },
+  { value: 4, emoji: '🙂', label: 'Bien', color: 'bg-primary-100 border-primary-400 text-primary-700' },
   { value: 3, emoji: '😐', label: 'Normal', color: 'bg-yellow-100 border-yellow-400 text-yellow-700' },
-  { value: 2, emoji: '☹️', label: 'Mal', color: 'bg-orange-100 border-orange-400 text-orange-700' },
+  { value: 2, emoji: '☹️', label: 'Mal', color: 'bg-accent-100 border-accent-300 text-accent-700' },
   { value: 1, emoji: '😢', label: 'Muy mal', color: 'bg-red-100 border-red-400 text-red-700' },
 ]
 
 const SLEEP_OPTIONS = [
-  { value: 3, emoji: '😴', label: 'Dormí bien', color: 'bg-indigo-100 border-indigo-400 text-indigo-700' },
+  { value: 3, emoji: '😴', label: 'Dormí bien', color: 'bg-primary-100 border-primary-400 text-primary-700' },
   { value: 2, emoji: '😌', label: 'Más o menos', color: 'bg-yellow-100 border-yellow-400 text-yellow-700' },
   { value: 1, emoji: '😟', label: 'Dormí mal', color: 'bg-red-100 border-red-400 text-red-700' },
 ]

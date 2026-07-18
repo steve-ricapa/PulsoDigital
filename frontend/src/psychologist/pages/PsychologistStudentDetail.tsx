@@ -183,7 +183,7 @@ export function PsychologistStudentDetail() {
               className={cn(
                 'flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
                 activeTab === tab.key
-                  ? 'bg-blue-50 text-blue-700'
+                  ? 'bg-primary-50 text-primary-700'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )}
               role="tab"
@@ -204,8 +204,8 @@ export function PsychologistStudentDetail() {
                 <svg className="w-full h-full" viewBox="0 0 800 256" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                      <stop offset="0%" stopColor="#4FA3A5" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#4FA3A5" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                   <path
@@ -214,7 +214,7 @@ export function PsychologistStudentDetail() {
                       const y = 256 - point.overall * 256
                       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
                     }).join(' ')}
-                    stroke="#3b82f6"
+                    stroke="#4FA3A5"
                     strokeWidth="3"
                     fill="none"
                     strokeLinecap="round"
@@ -234,7 +234,7 @@ export function PsychologistStudentDetail() {
                         cx={(i / Math.max(1, student.wellbeing_history.length - 1)) * 800}
                         cy={256 - point.overall * 256}
                         r="5"
-                        fill="#3b82f6"
+                        fill="#4FA3A5"
                         stroke="white"
                         strokeWidth="2"
                       />
@@ -296,9 +296,9 @@ export function PsychologistStudentDetail() {
                     <tr key={point.date} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-900">{formatDate(point.date)}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{Math.round(point.overall * 100)}%</td>
-                      <td className="px-4 py-3 text-sm text-pink-600">{Math.round(point.emotional * 100)}%</td>
-                      <td className="px-4 py-3 text-sm text-blue-600">{Math.round(point.safety * 100)}%</td>
-                      <td className="px-4 py-3 text-sm text-purple-600">{Math.round(point.belonging * 100)}%</td>
+                      <td className="px-4 py-3 text-sm text-lavender-600">{Math.round(point.emotional * 100)}%</td>
+                      <td className="px-4 py-3 text-sm text-primary-600">{Math.round(point.safety * 100)}%</td>
+                      <td className="px-4 py-3 text-sm text-lavender-600">{Math.round(point.belonging * 100)}%</td>
                       <td className="px-4 py-3"><span className={cn('badge', getRiskLevelColor(point.risk_level))}>{getRiskLevelLabel(point.risk_level)}</span></td>
                       <td className="px-4 py-3 text-sm flex items-center gap-1">
                         {getTrendIcon(point.risk_level === 'critical' || point.risk_level === 'high' ? 'declining' : 'stable')}
@@ -325,13 +325,13 @@ export function PsychologistStudentDetail() {
               <div key={req.id} className="card p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', req.is_anonymous ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600')}>
+                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', req.is_anonymous ? 'bg-yellow-100 text-yellow-600' : 'bg-primary-100 text-primary-600')}>
                       <MessageSquare className="w-6 h-6" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-gray-900">{getRequestTypeLabel(req.request_type)}</span>
-                        <span className={cn('badge', req.is_anonymous ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600')}>
+                        <span className={cn('badge', req.is_anonymous ? 'bg-yellow-100 text-yellow-600' : 'bg-primary-100 text-primary-600')}>
                           {req.is_anonymous ? 'Anónimo' : 'Identificado'}
                         </span>
                         <span className={cn('badge', req.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600')}>
@@ -376,7 +376,7 @@ export function PsychologistStudentDetail() {
                       <span className={cn('badge', intervention.is_completed ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600')}>
                         {intervention.is_completed ? 'Completada' : 'Pendiente'}
                       </span>
-                      <span className="badge bg-blue-100 text-blue-700">{getInterventionLabel(intervention.intervention_type)}</span>
+                      <span className="badge bg-primary-100 text-primary-700">{getInterventionLabel(intervention.intervention_type)}</span>
                     </div>
                     <p className="text-gray-900 mb-2">{intervention.description}</p>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">

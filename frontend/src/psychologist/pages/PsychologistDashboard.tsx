@@ -105,8 +105,8 @@ export function PsychologistDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+              <Users className="w-6 h-6 text-primary-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Estudiantes</p>
@@ -127,8 +127,8 @@ export function PsychologistDashboard() {
         </div>
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-orange-600" />
+            <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-accent-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Alertas Prioritarias</p>
@@ -138,8 +138,8 @@ export function PsychologistDashboard() {
         </div>
         <div className="card p-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-              <Clock className="w-6 h-6 text-purple-600" />
+            <div className="w-12 h-12 rounded-xl bg-lavender-100 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-lavender-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Solicitudes Pendientes</p>
@@ -171,8 +171,8 @@ export function PsychologistDashboard() {
               <div key={classroom.classroom_id} className="p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-700 font-bold text-lg">{classroom.grade}°{classroom.section}</span>
+                    <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+                      <span className="text-primary-700 font-bold text-lg">{classroom.grade}°{classroom.section}</span>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{classroom.classroom_name}</p>
@@ -230,7 +230,7 @@ export function PsychologistDashboard() {
 
           <div className="card p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-purple-500" />
+              <Clock className="w-5 h-5 text-lavender-500" />
               Seguimientos Próximos
             </h2>
             {data?.upcoming_followups.length === 0 ? (
@@ -240,15 +240,15 @@ export function PsychologistDashboard() {
                 {data?.upcoming_followups.slice(0, 5).map((f) => (
                   <div key={f.intervention_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-purple-600" />
+                      <div className="w-8 h-8 rounded-full bg-lavender-100 flex items-center justify-center">
+                        <Clock className="w-4 h-4 text-lavender-600" />
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 text-sm">{f.student_internal_id}</p>
                         <p className="text-xs text-gray-500">{getInterventionLabel(f.type)}</p>
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-purple-700 bg-purple-50 px-2 py-1 rounded">
+                    <span className="text-sm font-medium text-lavender-700 bg-lavender-50 px-2 py-1 rounded">
                       {formatDate(f.follow_up_date, { month: 'short', day: 'numeric' })}
                     </span>
                   </div>

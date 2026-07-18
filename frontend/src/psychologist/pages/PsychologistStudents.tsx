@@ -153,8 +153,8 @@ export function PsychologistStudents() {
                 <tr key={student.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/psicologo/estudiantes/${student.id}`)}>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-700 font-medium text-sm">{student.internal_id.charAt(0)}</span>
+                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <span className="text-primary-700 font-medium text-sm">{student.internal_id.charAt(0)}</span>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{student.internal_id}</p>
@@ -170,7 +170,7 @@ export function PsychologistStudents() {
                       <div className="flex items-center gap-2">
                         <div className="w-24 h-3 bg-gray-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-blue-600 rounded-full"
+                            className="h-full bg-accent-400 rounded-full"
                             style={{ width: `${student.latest_wellbeing * 100}%` }}
                           />
                         </div>
@@ -251,7 +251,7 @@ export function PsychologistStudents() {
                     className={cn(
                       'px-3 py-1.5 text-sm rounded-lg border',
                       p === page
-                        ? 'bg-blue-600 text-white border-blue-600'
+                        ? 'bg-accent-400 text-white border-primary-600'
                         : 'border-gray-300 hover:bg-gray-100'
                     )}
                   >
