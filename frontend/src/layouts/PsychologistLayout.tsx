@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../lib/utils'
-import { LayoutDashboard, Users, AlertTriangle, ClipboardList, LogOut, Menu, X, Bell } from 'lucide-react'
+import { LayoutDashboard, Users, AlertTriangle, ClipboardList, LogOut, Menu, X, Bell, MessageSquareWarning } from 'lucide-react'
 
 export function PsychologistLayout() {
   const { user, logout } = useAuth()
@@ -15,6 +15,7 @@ export function PsychologistLayout() {
     { path: '/psicologo/estudiantes', label: 'Estudiantes', icon: Users },
     { path: '/psicologo/alertas', label: 'Alertas', icon: AlertTriangle },
     { path: '/psicologo/intervenciones', label: 'Intervenciones', icon: ClipboardList },
+    { path: '/psicologo/reportes-chat', label: 'Reportes del Chat', icon: MessageSquareWarning },
   ]
 
   const handleLogout = async () => {

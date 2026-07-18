@@ -4,7 +4,7 @@ from typing import Optional, List
 from uuid import UUID
 from sqlalchemy import (
     String, Text, Integer, Float, Boolean, DateTime, Date,
-    ForeignKey, Index, UniqueConstraint, func,
+    ForeignKey, Index, UniqueConstraint, func, text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
@@ -178,6 +178,7 @@ class Student(TimestampMixin, Base):
     support_requests: Mapped[List["SupportRequest"]] = relationship(back_populates="student")
     interventions: Mapped[List["Intervention"]] = relationship(back_populates="student")
     daily_checkins: Mapped[List["DailyCheckin"]] = relationship(back_populates="student")
+    chat_reports: Mapped[List["ChatReport"]] = relationship()
 
 
 class Survey(TimestampMixin, Base):
@@ -370,6 +371,12 @@ class DailyCheckin(Base):
     student: Mapped["Student"] = relationship(back_populates="daily_checkins")
 
 
+class ChatReportStatus(str, enum.Enum):
+    PENDING = "pending"
+    REVIEWED = "reviewed"
+    DISMISSED = "dismissed"
+
+
 class SchoolPsychologist(Base):
     __tablename__ = "school_psychologists"
 
@@ -380,3 +387,30 @@ class SchoolPsychologist(Base):
         ForeignKey("psychologist_profiles.id", ondelete="CASCADE"), primary_key=True
     )
     assigned_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
+
+
+class ChatReport(TimestampMixin, Base):
+    __tablename__ = "chat_reports"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
+    student_id: Mapped[UUID] = mapped_column(ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    session_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    risk_level: Mapped[RiskLevel] = mapped_column(String(20), nullable=False)
+    risk_signals: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    messages_snapshot: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    status: Mapped[ChatReportStatus] = mapped_column(String(20), default=ChatReportStatus.PENDING, nullable=False)
+    psychologist_id: Mapped[Optional[UUID]] = mapped_column(
+        ForeignKey("psychologist_profiles.id", ondelete="SET NULL"), nullable=True
+    )
+    reviewer_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), nullable=False)
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("ix_chat_reports_student_created", "student_id", "created_at"),
+        Index("ix_chat_reports_status_risk", "status", "risk_level"),
+    )
+
+    student: Mapped["Student"] = relationship(back_populates="chat_reports", overlaps="chat_reports")
+    psychologist: Mapped[Optional["PsychologistProfile"]] = relationship()

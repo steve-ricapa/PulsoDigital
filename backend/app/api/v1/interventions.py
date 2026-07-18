@@ -17,6 +17,10 @@ from app.models import (
 router = APIRouter()
 
 
+def _enum_value(val: object) -> str:
+    return val.value if hasattr(val, "value") else str(val)
+
+
 class InterventionCreate(BaseModel):
     student_id: UUID
     intervention_type: InterventionType
@@ -170,6 +174,49 @@ async def list_interventions(
     )
 
 
+class StudentInterventionResponse(BaseModel):
+    id: UUID
+    intervention_type: str
+    description: str
+    follow_up_date: Optional[datetime] = None
+    psychologist_name: str
+    created_at: datetime
+
+
+@router.get("/mine", response_model=list[StudentInterventionResponse])
+async def get_my_pending_interventions(
+    current_user: User = Depends(require_roles("student")),
+    db: AsyncSession = Depends(get_db),
+):
+    student = await db.execute(
+        select(Student).where(Student.user_id == current_user.id)
+    )
+    student_obj = student.scalar_one_or_none()
+    if not student_obj:
+        raise HTTPException(status_code=404, detail="Perfil de estudiante no encontrado")
+
+    result = await db.execute(
+        select(Intervention)
+        .where(Intervention.student_id == student_obj.id, Intervention.is_completed == False)
+        .options(
+            selectinload(Intervention.psychologist).selectinload(PsychologistProfile.user)
+        )
+        .order_by(desc(Intervention.follow_up_date))
+    )
+    interventions = result.scalars().all()
+
+    return [
+        StudentInterventionResponse(
+            id=i.id,
+            intervention_type=_enum_value(i.intervention_type),
+            description=i.description,
+            follow_up_date=i.follow_up_date,
+            psychologist_name=i.psychologist.user.full_name,
+            created_at=i.created_at,
+        ) for i in interventions
+    ]
+
+
 @router.get("/{intervention_id}", response_model=InterventionResponse)
 async def get_intervention(
     intervention_id: UUID,
@@ -271,3 +318,5 @@ async def get_student_intervention_history(
             psychologist_name=i.psychologist.user.full_name,
         ) for i in interventions
     ]
+
+

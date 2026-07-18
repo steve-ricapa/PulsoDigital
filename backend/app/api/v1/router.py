@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     auth, students, surveys, responses, wellbeing, risk,
-    interventions, dashboard, notifications, audit,
+    interventions, dashboard, notifications, audit, chat_reports,
 )
 from app.ml.router import router as ml_router
 from app.chat.router import router as chat_router
@@ -21,3 +21,4 @@ api_router.include_router(notifications.router, prefix="/notifications", tags=["
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
 api_router.include_router(ml_router, prefix="/ml", tags=["ml"])
 api_router.include_router(chat_router, prefix="/chat", tags=["chat"])
+api_router.include_router(chat_reports.router, prefix="/chat-reports", tags=["chat-reports"])

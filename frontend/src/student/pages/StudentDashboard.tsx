@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { api } from '../../lib/api'
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, Calendar } from 'lucide-react'
+import { formatDate } from '../../lib/utils'
 
 interface CalendarData {
   completions: string[]
@@ -10,11 +11,40 @@ interface CalendarData {
   year: number
 }
 
+interface PendingItem {
+  id: string
+  intervention_type: string
+  description: string
+  follow_up_date: string | null
+  psychologist_name: string
+  created_at: string
+}
+
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]
 const DAY_NAMES = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
+
+const INTERVENTION_LABELS: Record<string, string> = {
+  session_scheduled: 'Una charla pendiente',
+  follow_up: 'Seguimiento',
+  conversation: 'Una conversación',
+  external_referral: 'Apoyo externo',
+  parent_contact: 'Conversación con apoderado',
+  group_activity: 'Actividad grupal',
+  other: 'Algo pendiente',
+}
+
+const INTERVENTION_ICONS: Record<string, string> = {
+  session_scheduled: '💬',
+  follow_up: '🔄',
+  conversation: '🫂',
+  external_referral: '🏥',
+  parent_contact: '👨‍👩‍👧',
+  group_activity: '👥',
+  other: '📋',
+}
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate()
@@ -28,6 +58,7 @@ function getFirstDayOfMonth(year: number, month: number) {
 export function StudentDashboard() {
   const { user } = useAuth()
   const [calendar, setCalendar] = useState<CalendarData | null>(null)
+  const [pending, setPending] = useState<PendingItem[]>([])
   const [loading, setLoading] = useState(true)
   const now = new Date()
   const [currentMonth, setCurrentMonth] = useState(now.getMonth() + 1)
@@ -38,10 +69,12 @@ export function StudentDashboard() {
       if (!user?.student_profile) return
       try {
         setLoading(true)
-        const res = await api.get('/responses/quick/calendar', {
-          params: { month: currentMonth, year: currentYear },
-        })
-        setCalendar(res.data)
+        const [calRes, pendingRes] = await Promise.all([
+          api.get('/responses/quick/calendar', { params: { month: currentMonth, year: currentYear } }),
+          api.get('/interventions/mine').catch(() => ({ data: [] })),
+        ])
+        setCalendar(calRes.data)
+        setPending(pendingRes.data)
       } catch {
         setCalendar({ completions: [], total: 0, month: currentMonth, year: currentYear })
       } finally {
@@ -173,7 +206,7 @@ export function StudentDashboard() {
               </div>
             ) : (
               <p className="text-sm text-gray-500">
-                {totalWeekdays - (calendar?.total || 0)} dias restantes
+                {totalWeekdays - (calendar?.total || 0)} días restantes
               </p>
             )}
           </div>
@@ -184,6 +217,38 @@ export function StudentDashboard() {
             style={{ width: `${totalWeekdays > 0 ? ((calendar?.total || 0) / totalWeekdays) * 100 : 0}%` }}
           />
         </div>
+      </div>
+
+      <div className="card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-purple-600" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900">Lo que viene</h2>
+        </div>
+        {pending.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">Todo al día</p>
+        ) : (
+          <div className="space-y-3">
+            {pending.map((item) => (
+              <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-2xl">{INTERVENTION_ICONS[item.intervention_type] || '📋'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm">
+                    {INTERVENTION_LABELS[item.intervention_type] || item.intervention_type}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">{item.description}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">con {item.psychologist_name}</p>
+                </div>
+                {item.follow_up_date && (
+                  <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-1 rounded whitespace-nowrap">
+                    {formatDate(item.follow_up_date, { month: 'short', day: 'numeric' })}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

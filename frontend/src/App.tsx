@@ -12,6 +12,7 @@ import { PsychologistStudents } from './psychologist/pages/PsychologistStudents'
 import { PsychologistStudentDetail } from './psychologist/pages/PsychologistStudentDetail'
 import { PsychologistInterventions } from './psychologist/pages/PsychologistInterventions'
 import { PsychologistAlerts } from './psychologist/pages/PsychologistAlerts'
+import { PsychologistChatReports } from './psychologist/pages/PsychologistChatReports'
 import { useAuthStore } from './store/authStore'
 
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
@@ -71,6 +72,7 @@ function AppRoutes() {
           <Route path="/psicologo/estudiantes/:id" element={<PsychologistStudentDetail />} />
           <Route path="/psicologo/intervenciones" element={<PsychologistInterventions />} />
           <Route path="/psicologo/alertas" element={<PsychologistAlerts />} />
+          <Route path="/psicologo/reportes-chat" element={<PsychologistChatReports />} />
         </Route>
 
         <Route path="/unauthorized" element={

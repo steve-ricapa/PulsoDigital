@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../lib/api'
 import { cn, formatDate, getRiskLevelColor, getRiskLevelLabel } from '../../lib/utils'
-import { TrendingUp, AlertTriangle, Clock, AlertCircle, Calendar, Users } from 'lucide-react'
+import { TrendingUp, AlertTriangle, Clock, AlertCircle, Calendar, Users, MessageSquareWarning } from 'lucide-react'
 
 interface ClassroomSummary {
   classroom_id: string
@@ -38,15 +38,25 @@ interface PsychologistDashboardData {
   }>
 }
 
+interface ChatReportStats {
+  total_pending: number
+  by_risk_level: Record<string, number>
+}
+
 export function PsychologistDashboard() {
   const [data, setData] = useState<PsychologistDashboardData | null>(null)
+  const [chatStats, setChatStats] = useState<ChatReportStats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await api.get('/dashboard/psychologist')
-        setData(res.data)
+        const [dashRes, statsRes] = await Promise.all([
+          api.get('/dashboard/psychologist'),
+          api.get('/chat-reports/stats').catch(() => ({ data: null })),
+        ])
+        setData(dashRes.data)
+        setChatStats(statsRes.data)
       } catch {
         console.error('Failed to fetch dashboard')
       } finally {
@@ -137,6 +147,17 @@ export function PsychologistDashboard() {
             </div>
           </div>
         </div>
+        <a href="/psicologo/reportes-chat" className="card p-6 hover:border-primary-300 transition-colors cursor-pointer">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+              <MessageSquareWarning className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Reportes del Chat</p>
+              <p className="text-2xl font-bold text-gray-900">{chatStats?.total_pending || 0}</p>
+            </div>
+          </div>
+        </a>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
