@@ -74,7 +74,8 @@ export function StudentDashboard() {
           api.get('/interventions/mine').catch(() => ({ data: [] })),
         ])
         setCalendar(calRes.data)
-        setPending(pendingRes.data)
+        const pendingData = pendingRes.data
+        setPending(Array.isArray(pendingData) ? pendingData : (pendingData?.interventions || []))
       } catch {
         setCalendar({ completions: [], total: 0, month: currentMonth, year: currentYear })
       } finally {

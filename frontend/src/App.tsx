@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { Login } from './pages/auth/Login'
+import { Landing } from './pages/Landing'
 import { StudentLayout } from './layouts/StudentLayout'
 import { PsychologistLayout } from './layouts/PsychologistLayout'
 import { StudentDashboard } from './student/pages/StudentDashboard'
@@ -45,6 +46,8 @@ function AppRoutes() {
   return (
     <AuthProvider>
       <Routes>
+        <Route path="/" element={<Landing />} />
+        
         <Route path="/login" element={
           <PublicRoute>
             <Login />
@@ -76,17 +79,16 @@ function AppRoutes() {
         </Route>
 
         <Route path="/unauthorized" element={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="min-h-screen flex items-center justify-center bg-surface">
             <div className="card p-8 text-center max-w-md">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Acceso no autorizado</h1>
+              <h1 className="text-2xl font-bold text-[#2A3B47] mb-2">Acceso no autorizado</h1>
               <p className="text-gray-600 mb-6">No tienes permisos para acceder a esta sección.</p>
               <a href="/login" className="btn-primary inline-block">Volver al inicio</a>
             </div>
           </div>
         } />
 
-        <Route path="/" element={<Navigate to="/pulso" replace />} />
-        <Route path="*" element={<Navigate to="/pulso" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   )

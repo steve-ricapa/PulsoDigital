@@ -86,26 +86,26 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-surface px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-accent-400 flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-accent-400 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-accent-200">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Pulso Digital</h1>
-          <p className="text-gray-600 mt-2">Plataforma de bienestar escolar</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#2A3B47]">Pulso Digital</h1>
+          <p className="text-[#2A3B47]/75 mt-2">Plataforma de bienestar escolar</p>
         </div>
 
-        <div className="card p-8">
+        <div className="card p-8 bg-white border border-primary-100 shadow-xl shadow-primary-50/50">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="label">Correo electrónico</label>
+              <label htmlFor="email" className="label text-[#2A3B47] font-semibold">Correo electrónico</label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={cn('input', errors.email && 'border-red-500 focus:ring-red-500 focus:border-red-500')}
+                className={cn('input border-primary-200 focus:ring-primary-400 focus:border-transparent transition-all', errors.email && 'border-red-500 focus:ring-red-500 focus:border-red-500')}
                 placeholder="usuario@ejemplo.com"
                 autoComplete="email"
                 disabled={loading}
@@ -114,14 +114,14 @@ export function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="label">Contraseña</label>
+              <label htmlFor="password" className="label text-[#2A3B47] font-semibold">Contraseña</label>
               <div className="relative">
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={cn('input pr-12', errors.password && 'border-red-500 focus:ring-red-500 focus:border-red-500')}
+                  className={cn('input pr-12 border-primary-200 focus:ring-primary-400 focus:border-transparent transition-all', errors.password && 'border-red-500 focus:ring-red-500 focus:border-red-500')}
                   placeholder="••••••••"
                   autoComplete="current-password"
                   disabled={loading}
@@ -129,7 +129,7 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#2A3B47]"
                   disabled={loading}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -141,7 +141,7 @@ export function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-3"
+              className="btn-primary w-full py-3 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer font-bold"
             >
               {loading ? (
                 <>
@@ -154,50 +154,48 @@ export function Login() {
             </button>
           </form>
 
-          <div className="my-6 border-t border-gray-200" />
+          <div className="my-6 border-t border-primary-100" />
 
           <div>
-            <p className="text-sm text-gray-500 text-center mb-3 font-medium">Acceso rápido</p>
+            <p className="text-sm text-[#2A3B47]/65 text-center mb-3 font-semibold">Acceso rápido</p>
             <div className="grid grid-cols-2 gap-2">
               {DEMO_PROFILES.map((profile) => (
                 <button
                   key={profile.role}
                   onClick={() => handleQuickLogin(profile.role)}
                   className={cn(
-                    'flex flex-col items-center gap-1 p-3 rounded-xl border-2 text-center transition-all cursor-pointer',
+                    'flex flex-col items-center gap-1 p-3 rounded-xl border-2 text-center transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-xs',
                     profile.color
                   )}
                 >
                   <profile.icon className="w-5 h-5" />
-                  <span className="text-sm font-semibold">{profile.label}</span>
-                  <span className="text-[10px] leading-tight opacity-75">{profile.description}</span>
+                  <span className="text-sm font-bold">{profile.label}</span>
+                  <span className="text-[10px] leading-tight opacity-80 font-medium">{profile.description}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="my-6 border-t border-gray-200" />
+          <div className="my-6 border-t border-primary-100" />
 
           <div>
-            <p className="text-sm text-gray-500 text-center mb-3 font-medium">¿O autocompletar credenciales?</p>
+            <p className="text-sm text-[#2A3B47]/65 text-center mb-3 font-semibold">¿O autocompletar credenciales?</p>
             <div className="grid grid-cols-2 gap-2">
               {DEMO_PROFILES.map((profile) => (
                 <button
                   key={`fill-${profile.role}`}
                   onClick={() => handleFillCredentials(profile.email)}
-                  className="text-xs px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                  className="text-xs px-3 py-2 rounded-xl border border-primary-100 text-[#2A3B47]/80 hover:bg-primary-50/50 hover:border-primary-200 transition-all font-medium cursor-pointer"
                 >
-                  <span className="font-medium">{profile.label}</span>
-                  <span className="block text-gray-400 mt-0.5">{profile.email}</span>
+                  <span className="font-bold">{profile.label}</span>
+                  <span className="block text-[#2A3B47]/60 mt-0.5">{profile.email}</span>
                 </button>
               ))}
             </div>
           </div>
-
-
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-[#2A3B47]/60 mt-6">
           ¿Necesitas ayuda? Contacta al administrador de tu colegio
         </p>
       </div>

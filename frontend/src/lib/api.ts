@@ -206,6 +206,19 @@ function getMockData(url: string): unknown {
     }
   }
 
+  if (url.includes('/interventions/mine')) {
+    return [
+      {
+        id: 'i1',
+        intervention_type: 'conversation',
+        description: 'Conversación amistosa de seguimiento socioemocional.',
+        follow_up_date: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
+        psychologist_name: 'Psic. Claudia Valdivia',
+        created_at: new Date().toISOString()
+      }
+    ]
+  }
+
   if (url.includes('/interventions') && !url.includes('/student/')) {
     return {
       interventions: [

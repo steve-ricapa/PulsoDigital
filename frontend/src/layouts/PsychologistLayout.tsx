@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../lib/utils'
-import { LayoutDashboard, Users, AlertTriangle, ClipboardList, LogOut, Menu, X, Bell, MessageSquareWarning } from 'lucide-react'
+import { LayoutDashboard, Users, AlertTriangle, ClipboardList, LogOut, Menu, X, Bell, MessageSquareWarning, Shield } from 'lucide-react'
 
 export function PsychologistLayout() {
   const { user, logout } = useAuth()
@@ -24,25 +24,25 @@ export function PsychologistLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-surface flex">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-primary-100 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
         aria-label="Navegación principal"
       >
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+          <div className="flex items-center justify-between h-16 px-4 border-b border-primary-100">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">P</span>
+              <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center shadow-md shadow-primary-200">
+                <Shield className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-semibold text-gray-900">Pulso Digital</span>
+              <span className="text-xl font-bold tracking-tight text-[#2A3B47]">Pulso Digital</span>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-primary-50"
               aria-label="Cerrar menú"
             >
               <X className="w-5 h-5" />
@@ -56,10 +56,10 @@ export function PsychologistLayout() {
                 to={item.path}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]',
                     isActive
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary-50 text-primary-700 shadow-sm border border-primary-100/60'
+                      : 'text-[#2A3B47]/70 hover:bg-primary-50/30 hover:text-[#2A3B47]'
                   )
                 }
               >
@@ -69,21 +69,21 @@ export function PsychologistLayout() {
             ))}
           </nav>
 
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-primary-100">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                <span className="text-primary-700 font-medium text-sm">
+              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center shadow-sm">
+                <span className="text-primary-700 font-bold text-sm">
                   {user?.full_name?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.full_name}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                <p className="text-sm font-semibold text-[#2A3B47] truncate">{user?.full_name}</p>
+                <p className="text-xs text-[#2A3B47]/60 capitalize">{user?.role === 'psychologist' ? 'Psicólogo' : user?.role}</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors mt-2"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-primary-50 hover:text-[#2A3B47] transition-all mt-2"
             >
               <LogOut className="w-5 h-5" />
               Cerrar sesión
@@ -94,54 +94,54 @@ export function PsychologistLayout() {
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-xs z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
 
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
+        <header className="sticky top-0 z-30 bg-white border-b border-primary-100 shadow-sm shadow-primary-50/50">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-primary-50"
               aria-label="Abrir menú"
             >
               <Menu className="w-6 h-6" />
             </button>
 
             <div className="flex-1 lg:flex-none">
-              <h1 className="text-xl font-semibold text-gray-900">Panel del Psicólogo</h1>
+              <h1 className="text-xl font-bold tracking-tight text-[#2A3B47]">Panel del Psicólogo</h1>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                className="relative p-2 rounded-lg text-gray-400 hover:bg-primary-50 hover:text-[#2A3B47]"
                 aria-label="Notificaciones"
                 aria-expanded={notificationsOpen}
               >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent-400 rounded-full" />
               </button>
 
-              <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
-                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                  <span className="text-primary-700 font-medium text-sm">
+              <div className="flex items-center gap-3 pl-3 border-l border-primary-100">
+                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center shadow-sm">
+                  <span className="text-primary-700 font-bold text-sm">
                     {user?.full_name?.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
-                  <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                  <p className="text-sm font-semibold text-[#2A3B47]">{user?.full_name}</p>
+                  <p className="text-xs text-[#2A3B47]/60 capitalize">{user?.role === 'psychologist' ? 'Psicólogo' : user?.role}</p>
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-surface">
           <Outlet />
         </main>
       </div>

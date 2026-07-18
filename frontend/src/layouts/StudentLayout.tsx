@@ -32,21 +32,21 @@ export function StudentLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface">
+      <header className="bg-white border-b border-primary-100 sticky top-0 z-40 shadow-sm shadow-primary-50/50">
         <div className="max-w-4xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">P</span>
+              <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center shadow-sm shadow-primary-200">
+                <Heart className="w-5 h-5 text-white fill-white/20" />
               </div>
-              <span className="text-xl font-semibold text-gray-900">Pulso Digital</span>
+              <span className="text-xl font-bold tracking-tight text-[#2A3B47]">Pulso Digital</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600 hidden sm:block">{user?.full_name}</span>
+              <span className="text-sm font-medium text-[#2A3B47]/80 hidden sm:block">{user?.full_name}</span>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                className="p-2 rounded-lg text-gray-400 hover:bg-primary-50 hover:text-[#2A3B47] transition-all"
                 aria-label="Cerrar sesión"
               >
                 <LogOut className="w-5 h-5" />
@@ -54,19 +54,19 @@ export function StudentLayout() {
             </div>
           </div>
         </div>
-        <nav className="border-t border-gray-100">
+        <nav className="border-t border-primary-50/60 bg-white">
           <div className="max-w-4xl mx-auto px-4">
-            <div className="flex overflow-x-auto gap-1 pb-2" role="tablist">
+            <div className="flex overflow-x-auto gap-1 py-1.5 scrollbar-hide" role="tablist">
               {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors',
+                      'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]',
                       isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-primary-50 text-primary-700 shadow-sm border border-primary-100'
+                        : 'text-[#2A3B47]/70 hover:bg-primary-50/50 hover:text-[#2A3B47]'
                     )
                   }
                 >
