@@ -92,11 +92,9 @@ export function StudentSupport() {
       {selectedType && (
         <div className="card p-6 animate-slide-in">
           {selectedType === 'anonymous_message' && (
-            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-yellow-800">
-                <strong>Importante:</strong> Tu mensaje será anónimo. Sin embargo, si detectamos riesgo grave para tu seguridad o la de otros, 
-                el colegio tiene la obligación legal de actuar y la confidencialidad tiene límites (Ley 29719).
+            <div className="mb-4 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg">
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Tu mensaje es anónimo. En casos de riesgo grave, el colegio actúa conforme a la Ley 29719.
               </p>
             </div>
           )}

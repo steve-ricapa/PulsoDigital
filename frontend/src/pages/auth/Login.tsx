@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Loader2, Shield, AlertCircle, GraduationCap, Stethoscope } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Shield, GraduationCap, Stethoscope } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 const DEMO_PROFILES = [
@@ -194,15 +194,7 @@ export function Login() {
             </div>
           </div>
 
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-yellow-800">
-                <strong>Importante:</strong> Si detectamos una situación de riesgo grave para tu seguridad o la de otros,
-                estamos obligados por ley a actuar y la confidencialidad tiene límites (Ley 29719).
-              </div>
-            </div>
-          </div>
+
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">
