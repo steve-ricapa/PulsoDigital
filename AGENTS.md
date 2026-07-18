@@ -71,7 +71,7 @@ Aplicar la regla de colorimetria **60-30-10**. El objetivo es un entorno de **tr
 - Then authorize it explicitly:
   `cat ~/.ssh/pulso_key.pub >> ~/.ssh/authorized_keys`
 - Local SSH will fail with `Permission denied (publickey)` until that `authorized_keys` step is done.
-- Working host/user for the current EC2 setup: `ubuntu@34.238.159.1`
+- Working host/user for the current EC2 setup: `ubuntu@54.159.182.86``
 
 ## Verification Order
 - For frontend-only work: `npm run build` first.
