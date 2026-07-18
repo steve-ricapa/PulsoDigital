@@ -27,7 +27,7 @@ const DEMO_PROFILES = [
 export function Login() {
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
-  const loginDemo = useAuthStore((s) => s.loginDemo)
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -63,11 +63,20 @@ export function Login() {
     }
   }
 
-  const handleDemoLogin = (role: 'student' | 'psychologist') => {
-    loginDemo(role)
-    toast.success(`Modo demo: ${DEMO_PROFILES.find(p => p.role === role)?.label}`)
-    if (role === 'student') navigate('/pulso')
-    else navigate('/psicologo/dashboard')
+  const handleQuickLogin = async (role: 'student' | 'psychologist') => {
+    const profile = DEMO_PROFILES.find(p => p.role === role)
+    if (!profile) return
+    setLoading(true)
+    try {
+      await login(profile.email, '12345678')
+      toast.success(`Bienvenido, ${profile.label}`)
+      if (role === 'student') navigate('/pulso')
+      else navigate('/psicologo/dashboard')
+    } catch {
+      toast.error('No se pudo iniciar sesión')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleFillCredentials = (demoEmail: string) => {
@@ -148,12 +157,12 @@ export function Login() {
           <div className="my-6 border-t border-gray-200" />
 
           <div>
-            <p className="text-sm text-gray-500 text-center mb-3 font-medium">Acceso rápido (modo demo)</p>
+            <p className="text-sm text-gray-500 text-center mb-3 font-medium">Acceso rápido</p>
             <div className="grid grid-cols-2 gap-2">
               {DEMO_PROFILES.map((profile) => (
                 <button
                   key={profile.role}
-                  onClick={() => handleDemoLogin(profile.role)}
+                  onClick={() => handleQuickLogin(profile.role)}
                   className={cn(
                     'flex flex-col items-center gap-1 p-3 rounded-xl border-2 text-center transition-all cursor-pointer',
                     profile.color
